@@ -1,0 +1,22 @@
+{
+  "model_config": {
+  },
+  "scheduler": {
+    "enabled": true,
+    "timezone": "Europe/Rome",
+    "tasks": [
+      {
+        "job_name": "log-analisi",
+        "schedule": {
+          "type": "cron",
+          "expression": "18 15 * * *",
+          "metadata": {
+            "description": "task di esempio",
+            "retry_on_failure": false
+          }
+        },
+        "startup_script": "setup.bat"
+      }
+    ]
+  }
+}
