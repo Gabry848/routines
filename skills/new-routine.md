@@ -44,9 +44,7 @@ Use this template, filling in the gathered values:
 ```json
 {
   "model_config": {
-    "mcp_servers": [],
     "model": "sonnet",
-    "allowed_tools": [],
     "load_timeout_ms": 60000
   },
   "scheduler": {
@@ -70,11 +68,17 @@ Use this template, filling in the gathered values:
 }
 ```
 
-Key `model_config` fields (all optional, include only what's needed):
-- `mcp_servers`: list of MCP server names, e.g. `["notion"]`
+Key `model_config` fields:
 - `model`: `"sonnet"` (default), `"opus"`, `"haiku"`
-- `allowed_tools`: list of tool names the agent can use, default `["Bash", "Read", "Edit"]`
-- `disallowed_tools`: tools to explicitly block
+- `load_timeout_ms`: load timeout in ms (default 60000)
+
+Do NOT include these fields in `model_config` — they are set automatically by the scheduler:
+- `mcp_servers` — managed externally, do not set
+- `allowed_tools` — managed externally, do not set
+- `disallowed_tools` — managed externally, do not set
+- `cwd` — computed automatically from routine path, do not set
+
+Other optional `model_config` fields (include only if user explicitly requests):
 - `max_turns`: max conversation turns
 - `max_budget_usd`: cost cap
 

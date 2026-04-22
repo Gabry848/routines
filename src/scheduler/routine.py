@@ -86,6 +86,8 @@ class RoutineConfig:
         options_payload["cwd"] = ROUTINES_PATH / self.routine_dir_name / "env"
         options_payload["model"] = options_payload.get("model") or DEFAULT_MODEL
         options_payload["allowed_tools"] = options_payload.get("allowed_tools") or DEFAULT_TOOLS
+        if "sandbox" not in options_payload:
+            options_payload["sandbox"] = True
         return ClaudeAgentOptions(**options_payload)
 
 
@@ -128,7 +130,7 @@ class Routine:
         subprocess.run(
             str(startup_path),
             shell=True,
-            cwd=routine_path,
+            cwd=routine_path / "env",
             check=False,
         )
 
