@@ -1,6 +1,8 @@
 import json
 import os
 import subprocess
+import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -8,13 +10,15 @@ from claude_agent_sdk import ClaudeAgentOptions
 
 from .agent import ClaudeAgent
 from .constants import *
+from .mcp_config import resolve_server_names
 
 
 class RoutineConfig:
     MODEL_CONFIG_DEFAULTS: dict[str, Any] = {
         "tools": None,
         "allowed_tools": [],
-        "mcp_servers": {},
+        "mcp_servers": [],
+        "mcp_selected_tools": {},
         "max_turns": None,
         "max_budget_usd": None,
         "disallowed_tools": [],
@@ -60,7 +64,26 @@ class RoutineConfig:
                 sanitized[key] = value if isinstance(value, list) else []
                 continue
 
-            if key in {"mcp_servers", "env"}:
+            if key == "mcp_servers":
+                if isinstance(value, list):
+                    sanitized[key] = value
+                elif isinstance(value, dict):
+                    sanitized[key] = value
+                else:
+                    sanitized[key] = []
+                continue
+
+            if key == "mcp_selected_tools":
+                if isinstance(value, dict):
+                    sanitized[key] = {
+                        k: v if isinstance(v, list) else []
+                        for k, v in value.items()
+                    }
+                else:
+                    sanitized[key] = {}
+                continue
+
+            if key == "env":
                 sanitized[key] = value if isinstance(value, dict) else {}
                 continue
 
@@ -132,15 +155,45 @@ class RoutineConfig:
         startup_script = task.get("startup_script") if isinstance(task, dict) else None
         return startup_script if isinstance(startup_script, str) and startup_script else None
 
-    def build_agent_options(self) -> ClaudeAgentOptions:
+    def build_agent_options(self, target_dir: Path) -> ClaudeAgentOptions:
         options_payload = dict(self.model_config)
-        
-        env_path = ROUTINES_PATH / self.routine_dir_name / "env"
-        options_payload["cwd"] = env_path
+
+        options_payload["cwd"] = target_dir
         options_payload["model"] = options_payload.get("model") or DEFAULT_MODEL
-        options_payload["allowed_tools"] = options_payload.get("allowed_tools") or DEFAULT_TOOLS
+
+        # --- MCP Server Resolution ---
+        mcp_servers_raw = options_payload.pop("mcp_servers", [])
+        mcp_selected_tools = options_payload.pop("mcp_selected_tools", {})
+
+        resolved_mcp: dict[str, Any] = {}
+        if isinstance(mcp_servers_raw, list) and mcp_servers_raw:
+            project_root = self.routine_path.parent.parent
+            try:
+                resolved_mcp = resolve_server_names(mcp_servers_raw, project_root=project_root)
+            except ValueError as e:
+                print(f"WARNING: {e}")
+                resolved_mcp = {}
+        elif isinstance(mcp_servers_raw, dict) and mcp_servers_raw:
+            resolved_mcp = mcp_servers_raw
+
+        if resolved_mcp:
+            options_payload["mcp_servers"] = resolved_mcp
+
+        # --- Build allowed_tools ---
+        base_tools = options_payload.pop("allowed_tools", None) or []
+        auto_mcp_tools: list[str] = []
+        for server_name, tool_names in mcp_selected_tools.items():
+            namespace = server_name.replace("-", "_")
+            for tool_name in tool_names:
+                auto_mcp_tools.append(f"mcp__{namespace}__{tool_name}")
+
+        all_tools = list(dict.fromkeys(base_tools + auto_mcp_tools))
+        options_payload["allowed_tools"] = all_tools or DEFAULT_TOOLS
         if options_payload.get("sandbox") is None:
             options_payload["sandbox"] = True
+            
+        if options_payload.get("sandbox"):
+            options_payload["load_timeout_ms"] = max(options_payload.get("load_timeout_ms", 60000), 300000)
 
         docker_config = self.config_data.get("docker", {})
         if docker_config.get("enabled"):
@@ -156,7 +209,19 @@ class RoutineConfig:
             for vol in extra_volumes:
                 volumes_args.append(f"-v {vol}")
             
-            # Inietteremo queste impostazioni tramite variabili d'ambiente fornite all'SDK
+            # Genera un settings.json filtrato che rimuove le permission globali
+            # così l'agent dentro Docker usa solo allowed_tools dal config della routine
+            filtered_settings_path = Path(__file__).parent / "docker_settings.json"
+            try:
+                with open(os.path.expanduser("~/.claude/settings.json"), "r") as sf:
+                    settings_data = json.load(sf)
+                # Rimuovi chiavi che sovrascrivono le permessi dell'agent
+                settings_data.pop("permissions", None)
+                with open(filtered_settings_path, "w") as sf:
+                    json.dump(settings_data, sf, indent=2)
+            except (FileNotFoundError, json.JSONDecodeError):
+                filtered_settings_path.write_text("{}")
+
             script_content = f"""#!/bin/bash
 # Wrapper globale per eseguire l'agent in Docker
 echo ">>> [Docker Wrapper] Esecuzione in container con network=$CLAUDE_DOCKER_NETWORK image=$CLAUDE_DOCKER_IMAGE" >&2
@@ -166,10 +231,11 @@ exec docker run -i --rm \\
   -e HOME=/root \\
   -v "$PWD:/env" \\
   -v "$HOME/.claude.json:/root/.claude.json:ro" \\
+  -v "{filtered_settings_path}:/root/.claude/settings.json:ro" \\
   -v "$HOME/.claude:/root/.claude" \\
   $CLAUDE_DOCKER_VOLUMES \\
   -w /env \\
-  "$CLAUDE_DOCKER_IMAGE" npx -y @anthropic-ai/claude-code@latest "$@"
+  "$CLAUDE_DOCKER_IMAGE" npx -y @anthropic-ai/claude-code@latest --permission-mode auto "$@"
 """
             wrapper_path.write_text(script_content)
             wrapper_path.chmod(0o755)
@@ -199,7 +265,7 @@ class Routine:
         self.timezone = timezone
         self.cron_expression = cron_expression
 
-    def _setup(self, startup_script: str | None) -> None:
+    def _setup(self, startup_script: str | None, target_dir: Path) -> None:
         """Logic to execute before each routine start."""
         if not startup_script:
             return
@@ -225,7 +291,7 @@ class Routine:
         subprocess.run(
             str(startup_path),
             shell=True,
-            cwd=routine_path / "env",
+            cwd=target_dir,
             check=False,
         )
 
@@ -234,17 +300,56 @@ class Routine:
         print(f"routine partita[{self.routine_name}]")
 
         runtime_config = RoutineConfig(self.routine_dir_name).load()
+        env_config = runtime_config.config_data.get("environment", {})
+        
+        isolated_runs = env_config.get("isolated_runs", False)
+        clone_repo = env_config.get("clone_repo")
+        clone_branch = env_config.get("clone_branch", "main")
+        keep_executions = env_config.get("keep_executions", False)
+
+        routine_base_path = ROUTINES_PATH / self.routine_dir_name
+        base_env_path = routine_base_path / "env"
+        
+        if isolated_runs:
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            target_dir = routine_base_path / "envs" / timestamp
+            target_dir.mkdir(parents=True, exist_ok=True)
+            
+            if clone_repo:
+                clone_cmd = ["git", "clone", "-b", clone_branch, clone_repo, "."]
+                print(f"Clonando repo: {' '.join(clone_cmd)} in {target_dir}...")
+                subprocess.run(clone_cmd, cwd=target_dir, check=True)
+                # Fix permessi per Docker: rendi scrivibile da tutti gli utenti
+                chmod_cmd = ["chmod", "-R", "a+w", "."]
+                subprocess.run(chmod_cmd, cwd=target_dir, check=True)
+            elif base_env_path.exists():
+                shutil.copytree(base_env_path, target_dir, dirs_exist_ok=True)
+        else:
+            target_dir = base_env_path
+            target_dir.mkdir(parents=True, exist_ok=True)
+            if clone_repo and not any(target_dir.iterdir()):
+                clone_cmd = ["git", "clone", "-b", clone_branch, clone_repo, "."]
+                print(f"Clonando repo iniziale: {' '.join(clone_cmd)} in {target_dir}...")
+                subprocess.run(clone_cmd, cwd=target_dir, check=True)
+                # Fix permessi per Docker: rendi scrivibile da tutti gli utenti
+                chmod_cmd = ["chmod", "-R", "a+w", "."]
+                subprocess.run(chmod_cmd, cwd=target_dir, check=True)
+
         startup_script = runtime_config.startup_script_for(
             job_name=self.routine_name,
             cron_expression=self.cron_expression,
         )
-        self._setup(startup_script)
+        self._setup(startup_script, target_dir)
 
-        agent_options = runtime_config.build_agent_options()
-        runtime_prompt = (
-            runtime_config.prompt_text.strip()
-        )
+        agent_options = runtime_config.build_agent_options(target_dir)
+        runtime_prompt = runtime_config.prompt_text.strip()
 
         agent = ClaudeAgent(options=agent_options)
-        await agent.run(prompt=runtime_prompt)
+        try:
+            await agent.run(prompt=runtime_prompt)
+        finally:
+            if isolated_runs and not keep_executions:
+                print(f"Rimuovo esecuzione effimera: {target_dir}")
+                shutil.rmtree(target_dir, ignore_errors=True)
+
         print(f"routine finita[{self.routine_name}]")

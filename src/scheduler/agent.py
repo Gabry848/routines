@@ -16,11 +16,13 @@ class ClaudeAgent:
 
     def _log_path(self) -> Path:
         cwd_path = Path(self.options.cwd)
-        routine_log_dir = cwd_path.parent / "logs"
-        if cwd_path.name == "env" and routine_log_dir.exists():
-            log_dir = routine_log_dir
+        # Se siamo in una run isolata (envs/2026-XX-YY), risaliamo fino alla vera root della routine
+        if cwd_path.parent.name == "envs":
+            routine_root = cwd_path.parent.parent
         else:
-            log_dir = cwd_path / "logs"
+            routine_root = cwd_path.parent
+            
+        log_dir = routine_root / "logs"
         log_dir.mkdir(parents=True, exist_ok=True)
         return log_dir / f"{datetime.now().isoformat()}.log"
 

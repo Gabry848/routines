@@ -47,36 +47,22 @@ async def run_routine(routine_dir_name: str) -> None:
     else:
         print(f"    docker: DISABLED")
         
+    env_config = config.config_data.get("environment", {})
+    print(f"    isolated: {env_config.get('isolated_runs', False)}")
+    if env_config.get("clone_repo"):
+        print(f"    repo: {env_config.get('clone_repo')} (branch: {env_config.get('clone_branch', 'main')})")
     print()
 
-    startup_script = config.startup_script_for(job_name, cron_expression)
-    routine_path = config.routine_path
+    from scheduler.routine import Routine
 
-    if startup_script:
-        from scheduler.routine import Routine
-
-        Routine._setup(
-            Routine(
-                routine_dir_name=routine_dir_name,
-                routine_name=job_name,
-                timezone=scheduler.get("timezone", "UTC"),
-                cron_expression=cron_expression,
-            ),
-            startup_script,
-        )
-
-    agent_options = config.build_agent_options()
+    routine = Routine(
+        routine_dir_name=routine_dir_name,
+        routine_name=job_name,
+        timezone=scheduler.get("timezone", "UTC"),
+        cron_expression=cron_expression,
+    )
     
-    # Aumentiamo esplicitamente il timeout di caricamento se Docker è abilitato
-    if agent_options.sandbox:
-        agent_options.load_timeout_ms = max(agent_options.load_timeout_ms, 300000) # 5 minuti
-        
-    prompt = config.prompt_text.strip()
-
-    from scheduler.agent import ClaudeAgent
-
-    agent = ClaudeAgent(options=agent_options)
-    await agent.run(prompt=prompt)
+    await routine.start()
 
     print(f"--- Routine '{routine_dir_name}' completata ---")
 
