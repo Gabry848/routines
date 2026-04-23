@@ -1,4 +1,7 @@
 import asyncio
+import traceback
+from dataclasses import dataclass, field
+from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from pathlib import Path
@@ -7,6 +10,25 @@ from zoneinfo import ZoneInfo
 from .constants import ROUTINES_PATH
 from .loader import load_jobs
 from .routine import Routine
+
+
+@dataclass
+class ExecutionRecord:
+    execution_id: str
+    routine_name: str
+    task_id: str
+    started_at: datetime
+    finished_at: datetime | None = None
+    status: str = "running"  # running | success | failed
+
+
+@dataclass
+class ErrorRecord:
+    routine_name: str
+    task_id: str
+    error_type: str
+    message: str
+    timestamp: datetime
 
 
 class RoutineScheduler:
@@ -22,6 +44,12 @@ class RoutineScheduler:
         self._scheduler = AsyncIOScheduler()
         self._job_signatures: dict[str, tuple[str, str, str, str | None]] = {}
 
+        self.started_at: datetime = datetime.now()
+        self.last_sync_at: datetime | None = None
+        self._running_executions: dict[str, ExecutionRecord] = {}
+        self._execution_history: list[ExecutionRecord] = []
+        self._last_errors: dict[str, ErrorRecord] = {}
+
     def _desired_jobs(self) -> dict[str, Routine]:
         jobs = load_jobs(self._base_path)
         return {job.scheduler_job_id: job for job in jobs}
@@ -31,12 +59,42 @@ class RoutineScheduler:
         trigger = CronTrigger.from_crontab(job.cron_expression, timezone=timezone)
 
         self._scheduler.add_job(
-            job.start,
+            self._run_tracked_job,
             trigger=trigger,
             id=job.scheduler_job_id,
             replace_existing=True,
+            args=[job],
         )
         self._job_signatures[job.scheduler_job_id] = job.signature
+
+    async def _run_tracked_job(self, job: Routine) -> None:
+        execution_id = (
+            f"{job.scheduler_job_id}:{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+        )
+        record = ExecutionRecord(
+            execution_id=execution_id,
+            routine_name=job.routine_dir_name,
+            task_id=job.task_id,
+            started_at=datetime.now(),
+        )
+        self._running_executions[execution_id] = record
+        try:
+            await job.start()
+            record.status = "success"
+        except Exception as exc:
+            record.status = "failed"
+            self._last_errors[job.routine_dir_name] = ErrorRecord(
+                routine_name=job.routine_dir_name,
+                task_id=job.task_id,
+                error_type=type(exc).__name__,
+                message=str(exc),
+                timestamp=datetime.now(),
+            )
+            traceback.print_exc()
+        finally:
+            record.finished_at = datetime.now()
+            self._execution_history.append(record)
+            self._running_executions.pop(execution_id, None)
 
     def _remove_job(self, job_id: str) -> None:
         if self._scheduler.get_job(job_id) is not None:
@@ -70,6 +128,7 @@ class RoutineScheduler:
                 updated += 1
 
         self._jobs = list(desired_jobs.values())
+        self.last_sync_at = datetime.now()
         return added, updated, removed
 
     async def run_forever(self) -> None:

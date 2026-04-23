@@ -64,6 +64,9 @@ def load_jobs(base_path: Path = ROUTINES_PATH) -> list[Routine]:
             if not isinstance(schedule, dict):
                 continue
 
+            if task.get("enabled") is False:
+                continue
+
             if schedule.get("type") != "cron":
                 continue
 
