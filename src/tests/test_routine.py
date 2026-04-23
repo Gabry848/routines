@@ -28,17 +28,25 @@ async def run_routine(routine_dir_name: str) -> None:
     tasks = scheduler.get("tasks", [])
 
     if not tasks:
-        print(f"ERRORE: nessun task definito in config.json per '{routine_dir_name}'")
-        sys.exit(1)
-
-    task = tasks[0]
-    job_name = task.get("job_name", routine_dir_name)
-    cron_expression = task.get("schedule", {}).get("expression", "* * * * *")
+        print(f"ATTENZIONE: nessun task definito in config.json per '{routine_dir_name}'. Eseguo con parametri di default.")
+        job_name = routine_dir_name
+        cron_expression = "* * * * *"
+    else:
+        task = tasks[0]
+        job_name = task.get("job_name", routine_dir_name)
+        cron_expression = task.get("schedule", {}).get("expression", "* * * * *")
 
     print(f"--- Test routine: {routine_dir_name} ---")
     print(f"    job: {job_name}")
     print(f"    cron: {cron_expression}")
     print(f"    model: {config.model_config.get('model', 'sonnet')}")
+    
+    docker_config = config.config_data.get("docker", {})
+    if docker_config.get("enabled"):
+        print(f"    docker: ENABLED (image: {docker_config.get('image', 'node:20')}, network: {docker_config.get('network', 'bridge')})")
+    else:
+        print(f"    docker: DISABLED")
+        
     print()
 
     startup_script = config.startup_script_for(job_name, cron_expression)
@@ -58,6 +66,11 @@ async def run_routine(routine_dir_name: str) -> None:
         )
 
     agent_options = config.build_agent_options()
+    
+    # Aumentiamo esplicitamente il timeout di caricamento se Docker è abilitato
+    if agent_options.sandbox:
+        agent_options.load_timeout_ms = max(agent_options.load_timeout_ms, 300000) # 5 minuti
+        
     prompt = config.prompt_text.strip()
 
     from scheduler.agent import ClaudeAgent

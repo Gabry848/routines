@@ -1,7 +1,14 @@
 {
   "model_config": {
     "tools": null,
-    "allowed_tools": [],
+    "allowed_tools": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "mcp__claude_ai_Notion__notion-search",
+      "mcp__claude_ai_Notion__notion-fetch"
+    ],
     "mcp_servers": {},
     "max_turns": null,
     "max_budget_usd": null,
@@ -22,16 +29,16 @@
     "timezone": "Europe/Rome",
     "tasks": [
       {
-        "job_name": "log-analisi",
+        "job_name": "mytaskly-api-status-daily",
         "schedule": {
           "type": "cron",
-          "expression": "18 15 * * *",
+          "expression": "3 17 * * *",
           "metadata": {
-            "description": "task di esempio",
+            "description": "Report giornaliero MyTaskly API Changes - pending e in progress",
             "retry_on_failure": false
           }
         },
-        "startup_script": "setup.bat"
+        "startup_script": "setup.sh"
       }
     ]
   },

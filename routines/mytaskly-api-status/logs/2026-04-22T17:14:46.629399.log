@@ -1,0 +1,38 @@
+[tool: mcp__claude_ai_Notion__notion-search] {'query': 'MyTaskly API Changes', 'query_type': 'internal', 'filters': {}, 'page_size': 5}
+[tool: mcp__claude_ai_Notion__notion-search] {'query': 'API Changes', 'query_type': 'internal', 'filters': {}, 'page_size': 5}
+Database trovato. Fetch schema e dati.
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '5f510281-6dd4-4327-b598-118e8570ca51'}
+Schema recuperato. Ora cerco gli elementi pending e in progress.
+[tool: mcp__claude_ai_Notion__notion-search] {'query': 'pending in progress', 'query_type': 'internal', 'filters': {}, 'data_source_url': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d', 'page_size': 25, 'max_highlight_length': 0}
+Solo 2 risultati. Cerco separatamente per status più specifico.
+[tool: mcp__claude_ai_Notion__notion-search] {'data_source_url': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d', 'filters': {}, 'max_highlight_length': 0, 'page_size': 25, 'query': 'pending', 'query_type': 'internal'}
+[tool: mcp__claude_ai_Notion__notion-search] {'data_source_url': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d', 'filters': {}, 'max_highlight_length': 0, 'page_size': 25, 'query': 'in progress', 'query_type': 'internal'}
+Risultati parziali. Fetch diretto delle pagine per ottenere proprietà complete.
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-814e-b732-fa2006b705e5'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-81fc-8fd2-db4809cb2287'}
+Risultati search troppo limitati. Fetch diretto del data source per prendere tutto.
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d'}
+Fetch data source non restituisce le righe. Provo con ricerche più ampie per catturare tutte le pagine.
+[tool: mcp__claude_ai_Notion__notion-search] {'data_source_url': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d', 'filters': {}, 'max_highlight_length': 0, 'page_size': 25, 'query': 'endpoint', 'query_type': 'internal'}
+[tool: mcp__claude_ai_Notion__notion-search] {'data_source_url': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d', 'filters': {}, 'max_highlight_length': 0, 'page_size': 25, 'query': 'API change method feature', 'query_type': 'internal'}
+Trovate 10 pagine (alcune duplicate con stesso titolo). Fetch tutte per leggere lo status.
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-818a-91e6-d1c6f9ee264b'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-819c-9c05-ccc86d0492c9'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-81d3-a7be-e37d9732f713'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-815a-b2cc-f48793b49b9b'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-8145-8bdf-c80777af4775'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '345b2d66-ae36-8129-93fc-f0ae8c911b87'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-81a3-8ae0-f3a4ae00514d'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '345b2d66-ae36-8196-b19a-e4503bd1af45'}
+Dati completi raccolti. Scrivo il report.
+[tool: Bash] {'command': 'ls /home/gabry848/Scrivania/logs/ 2>/dev/null || echo "DIR_NOT_FOUND"', 'description': 'Check if ../logs directory exists'}
+[tool: Write] {'file_path': '/home/gabry848/Scrivania/logs/api_status_2026-04-22.md', 'content': "# MyTaskly API Changes — Report del 2026-04-22\n\n## In Progress (5)\n\n### 1. POST /admin/users/{user_id}/plan [REMOVED]\n- **Feature:** Subscription Plans & Limits\n- **Method:** POST\n- **Priority:** normale\n- **Breaking:** yes\n- **Session date:** 2026-04-16\n- **Ultimo aggiornamento:** 2026-04-16\n- **Descrizione:** Endpoint admin rimosso. L'assegnazione del piano avviene ora esclusivamente tramite webhook RevenueCat (`POST /billing/webhook`), non manualmente. L'endpoint restituisce 404.\n\n### 2. POST /billing/webhook\n- **Feature:** Subscription Plans & Limits\n- **Method:** POST\n- **Priority:** critico\n- **Breaking:** no\n- **Session date:** 2026-04-16\n- **Ultimo aggiornamento:** 2026-04-16\n- **Descrizione:** Riceve eventi di abbonamento da RevenueCat e aggiorna lo stato della subscription dell'utente. Tipi gestiti: `INITIAL_PURCHASE`, `RENEWAL`, `CANCELLATION`, `EXPIRATION`.\n\n### 3. POST /billing/cancel\n- **Feature:** Subscription Plans & Limits\n- **Method:** POST\n- **Priority:** critico\n- **Breaking:** no\n- **Session date:** 2026-04-16\n- **Ultimo aggiornamento:** 2026-04-16\n- **Descrizione:** Cancella l'abbonamento attivo dell'utente. L'accesso premium rimane fino a `current_period_end` (grace period).\n\n### 4. GET /auth/me (Chat Dual Rate Limits)\n- **Feature:** Chat Dual Rate Limits\n- **Method:** GET\n- **Priority:** critico\n- **Breaking:** yes\n- **Session date:** 2026-04-17\n- **Ultimo aggiornamento:** 2026-04-17\n- **Descrizione:** Espone nuovi campi mensili per testo e voce (`chat_text_monthly_limit`, `chat_voice_monthly_limit`). `chat_voice_enabled` passa a `true` per tutti i piani incluso free.\n\n### 5. WS /chat/voice-bot-websocket (Chat Dual Rate Limits)\n- **Feature:** Chat Dual Rate Limits\n- **Method:** GET (WebSocket)\n- **Priority:** critico\n- **Breaking:** yes\n- **Session date:** 2026-04-17\n- **Ultimo aggiornamento:** 2026-04-17\n- **Descrizione:** Voce disponibile su tutti i piani con quota mensile (free: 20/mese). Codice 4029 = quota mensile esaurita, 4003 = piano senza voce.\n\n## Pending (0)\n\nNessun elemento.\n\n---\n\n## Sommario\n\n| Categoria | Count |\n|-----------|-------|\n| In Progress | 5 |\n| Pending | 0 |\n| **Totale** | **5** |\n"}
+[tool: Read] {'file_path': '/home/gabry848/Scrivania/logs/api_status_2026-04-22.md'}
+File già esistente con dati identici. Report aggiornato e presente in `../logs/api_status_2026-04-22.md`.
+
+Risultati dal database **MyTaskly API Changes**:
+
+- **In Progress: 5** — `POST /billing/webhook`, `POST /billing/cancel`, `POST /admin/users/{user_id}/plan [REMOVED]`, `GET /auth/me` (Dual Rate Limits), `WS /chat/voice-bot-websocket` (Dual Rate Limits)
+- **Pending: 0** — Nessun elemento
+
+Done - cost: $0.4893, turns: 23

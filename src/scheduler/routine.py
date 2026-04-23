@@ -134,11 +134,55 @@ class RoutineConfig:
 
     def build_agent_options(self) -> ClaudeAgentOptions:
         options_payload = dict(self.model_config)
-        options_payload["cwd"] = ROUTINES_PATH / self.routine_dir_name / "env"
+        
+        env_path = ROUTINES_PATH / self.routine_dir_name / "env"
+        options_payload["cwd"] = env_path
         options_payload["model"] = options_payload.get("model") or DEFAULT_MODEL
         options_payload["allowed_tools"] = options_payload.get("allowed_tools") or DEFAULT_TOOLS
         if options_payload.get("sandbox") is None:
             options_payload["sandbox"] = True
+
+        docker_config = self.config_data.get("docker", {})
+        if docker_config.get("enabled"):
+            image = docker_config.get("image", "node:20")
+            network = docker_config.get("network", "bridge")
+            extra_volumes = docker_config.get("extra_volumes", [])
+            
+            # Scrive il wrapper una volta sola nella directory root del progetto Python
+            # anziché dentro le cartelle env delle varie routine.
+            wrapper_path = Path(__file__).parent / "docker_wrapper.sh"
+            
+            volumes_args = []
+            for vol in extra_volumes:
+                volumes_args.append(f"-v {vol}")
+            
+            # Inietteremo queste impostazioni tramite variabili d'ambiente fornite all'SDK
+            script_content = f"""#!/bin/bash
+# Wrapper globale per eseguire l'agent in Docker
+echo ">>> [Docker Wrapper] Esecuzione in container con network=$CLAUDE_DOCKER_NETWORK image=$CLAUDE_DOCKER_IMAGE" >&2
+
+exec docker run -i --rm \\
+  --network "$CLAUDE_DOCKER_NETWORK" \\
+  -e HOME=/root \\
+  -v "$PWD:/env" \\
+  -v "$HOME/.claude.json:/root/.claude.json:ro" \\
+  -v "$HOME/.claude:/root/.claude" \\
+  $CLAUDE_DOCKER_VOLUMES \\
+  -w /env \\
+  "$CLAUDE_DOCKER_IMAGE" npx -y @anthropic-ai/claude-code@latest "$@"
+"""
+            wrapper_path.write_text(script_content)
+            wrapper_path.chmod(0o755)
+            
+            options_payload["cli_path"] = str(wrapper_path)
+            
+            # Passiamo le opzioni variabili al wrapper iniettandole nell'env del thread locale Python
+            custom_env = options_payload.get("env") or {}
+            custom_env["CLAUDE_DOCKER_NETWORK"] = network
+            custom_env["CLAUDE_DOCKER_IMAGE"] = image
+            custom_env["CLAUDE_DOCKER_VOLUMES"] = " ".join(volumes_args)
+            options_payload["env"] = custom_env
+
         return ClaudeAgentOptions(**options_payload)
 
 

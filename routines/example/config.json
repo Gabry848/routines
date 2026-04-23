@@ -1,63 +1,26 @@
 {
-  "model_config": {
-    "tools": null,
-    "allowed_tools": [],
-    "system_prompt": null,
-    "mcp_servers": {},
-    "permission_mode": null,
-    "continue_conversation": false,
-    "resume": null,
-    "session_id": null,
-    "max_turns": null,
-    "max_budget_usd": null,
-    "disallowed_tools": [],
-    "model": "sonnet",
-    "fallback_model": null,
-    "betas": [],
-    "permission_prompt_tool_name": null,
-    "cli_path": null,
-    "settings": null,
-    "add_dirs": [],
-    "env": {},
-    "extra_args": {},
-    "max_buffer_size": null,
-    "debug_stderr": null,
-    "stderr": null,
-    "can_use_tool": null,
-    "hooks": null,
-    "user": null,
-    "include_partial_messages": false,
-    "fork_session": false,
-    "agents": null,
-    "setting_sources": null,
-    "skills": null,
-    "sandbox": null,
-    "plugins": [],
-    "max_thinking_tokens": null,
-    "thinking": null,
-    "effort": null, 
-    "output_format": null,
-    "enable_file_checkpointing": false,
-    "session_store": null,
-    "load_timeout_ms": 60000,
-    "task_budget": null
-  },
   "scheduler": {
     "enabled": true,
     "timezone": "Europe/Rome",
     "tasks": [
       {
-        "job_name": "log-analisi",
+        "job_name": "example-cron-job",
         "schedule": {
           "type": "cron",
-          "expression": "42 14 * * *",
-          "metadata": {
-            "description": "task di esempio",
-            "retry_on_failure": false
-          }
+          "expression": "30 9 * * *"
         },
-        "startup_script": "setup.bat"
+        "startup_script": "setup.sh"
       }
     ]
+  },
+  "model_config": {
+    "model": "sonnet",
+    "allowed_tools": ["Bash", "GlobMatch", "GrepSearch", "LS", "View", "FileRead", "FileWrite"],
+    "sandbox": true
+  },
+  "docker": {
+    "enabled": true,
+    "image": "node:20",
+    "network": "bridge"
   }
 }

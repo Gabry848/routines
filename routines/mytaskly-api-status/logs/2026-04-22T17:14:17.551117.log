@@ -1,0 +1,44 @@
+2026-04-22T17:14:17.551212 - [tool: mcp__claude_ai_Notion__notion-search] {'query': 'MyTaskly API Changes', 'query_type': 'internal', 'filters': {}}
+[tool: mcp__claude_ai_Notion__notion-search] {'query': 'API Changes', 'query_type': 'internal', 'filters': {}}
+Trovato. Database ID: `5f510281-6dd4-4327-b598-118e8570ca51`. Fetch dello schema e dati.
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '5f510281-6dd4-4327-b598-118e8570ca51'}
+Schema ottenuto. Status options: `pending`, `in progress`, `done`. Query per entrambi gli stati.
+[tool: mcp__claude_ai_Notion__notion-search] {'filters': {}, 'query': 'pending in progress', 'query_type': 'internal', 'data_source_url': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d', 'page_size': 25}
+Solo 2 risultati. Devo prendere tutti gli elementi. Faccio fetch del data source e anche ricerche più specifiche.
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d'}
+Il data source fetch mostra solo lo schema. Devo cercare le pagine individualmente. Provo ricerche mirate per status.
+[tool: mcp__claude_ai_Notion__notion-search] {'data_source_url': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d', 'filters': {}, 'page_size': 25, 'query': 'status pending', 'query_type': 'internal'}
+[tool: mcp__claude_ai_Notion__notion-search] {'data_source_url': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d', 'filters': {}, 'page_size': 25, 'query': 'status in progress', 'query_type': 'internal'}
+[tool: mcp__claude_ai_Notion__notion-search] {'data_source_url': 'collection://378fb955-8bb0-407c-80f0-efc2ed08fa8d', 'filters': {}, 'page_size': 25, 'query': 'endpoint API method', 'query_type': 'internal'}
+Devo fetch ogni pagina per leggere la proprietà Status. Fetch in parallelo di tutti gli elementi trovati.
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-814e-b732-fa2006b705e5'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-81fc-8fd2-db4809cb2287'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '345b2d66-ae36-8129-93fc-f0ae8c911b87'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-81a3-8ae0-f3a4ae00514d'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-819c-9c05-ccc86d0492c9'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-815a-b2cc-f48793b49b9b'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-8145-8bdf-c80777af4775'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-81d3-a7be-e37d9732f713'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '345b2d66-ae36-8196-b19a-e4503bd1af45'}
+[tool: mcp__claude_ai_Notion__notion-fetch] {'id': '344b2d66-ae36-818a-91e6-d1c6f9ee264b'}
+Dati completi. Raggruppo per status:
+
+**In Progress (5):** GET /auth/me, POST /billing/cancel, POST /admin/users/{user_id}/plan [REMOVED], POST /billing/webhook, WS /chat/voice-bot-websocket
+**Done (5):** (esclusi dal report)
+**Pending (0):** nessuno
+
+Scrivo il report.
+[tool: Bash] {'command': 'ls /home/gabry848/Scrivania/logs/ 2>/dev/null || echo "DIR_NOT_FOUND"', 'description': 'Check if ../logs/ directory exists'}
+[tool: Bash] {'command': 'mkdir -p /home/gabry848/Scrivania/logs', 'description': 'Create logs directory'}
+[tool: Write] {'file_path': '/home/gabry848/Scrivania/logs/api_status_2026-04-22.md', 'content': "# MyTaskly API Changes — Report del 2026-04-22\n\n## In Progress (5)\n\n### 1. POST /billing/webhook\n- **Feature:** Subscription Plans & Limits\n- **Method:** POST\n- **Endpoint:** `/billing/webhook`\n- **Breaking:** no\n- **Priority:** critico\n- **Session date:** 2026-04-16\n- **Descrizione:** Riceve eventi di abbonamento da RevenueCat e aggiorna lo stato della subscription dell'utente. Eventi gestiti: INITIAL_PURCHASE, RENEWAL, CANCELLATION, EXPIRATION.\n- **Link:** https://www.notion.so/344b2d66ae36819c9c05ccc86d0492c9\n\n### 2. POST /billing/cancel\n- **Feature:** Subscription Plans & Limits\n- **Method:** POST\n- **Endpoint:** `/billing/cancel`\n- **Breaking:** no\n- **Priority:** critico\n- **Session date:** 2026-04-16\n- **Descrizione:** Cancella l'abbonamento attivo dell'utente lato server. Accesso premium rimane attivo fino a `current_period_end` (grace period).\n- **Link:** https://www.notion.so/344b2d66ae3681458bdfc80777af4775\n\n### 3. POST /admin/users/{user_id}/plan [REMOVED]\n- **Feature:** Subscription Plans & Limits\n- **Method:** POST\n- **Endpoint:** `/admin/users/{user_id}/plan`\n- **Breaking:** sì\n- **Priority:** normale\n- **Session date:** 2026-04-16\n- **Descrizione:** Endpoint admin rimosso. Assegnazione piano ora esclusivamente tramite webhook RevenueCat. Rimuovere chiamate a questo endpoint dagli strumenti admin.\n- **Link:** https://www.notion.so/344b2d66ae3681fc8fd2db4809cb2287\n\n### 4. GET /auth/me (Chat Dual Rate Limits)\n- **Feature:** Chat Dual Rate Limits\n- **Method:** GET\n- **Endpoint:** `/auth/me`\n- **Breaking:** sì\n- **Priority:** critico\n- **Session date:** 2026-04-17\n- **Descrizione:** Aggiunge campi mensili per testo e voce. `chat_voice_enabled` passa a `true` per tutti i piani incluso free. Aggiornare logica UI per usare `chat_voice_monthly_limit` come gate.\n- **Link:** https://www.notion.so/345b2d66ae36812993fcf0ae8c911b87\n\n### 5. WS /chat/voice-bot-websocket (Chat Dual Rate Limits)\n- **Feature:** Chat Dual Rate Limits\n- **Method:** GET (WebSocket)\n- **Endpoint:** `/chat/voice-bot-websocket`\n- **Breaking:** sì\n- **Priority:** critico\n- **Session date:** 2026-04-17\n- **Descrizione:** Voce disponibile su tutti i piani con quota mensile. Utenti free: 20 richieste/mese. Codice 4029 = quota esaurita, 4003 = piano senza voce.\n- **Link:** https://www.notion.so/345b2d66ae368196b19ae4503bd1af45\n\n## Pending (0)\n\nNessun elemento.\n\n## Sommario\n\n| Stato | Conteggio |\n|-------|-----------|\n| In Progress | 5 |\n| Pending | 0 |\n| **Totale** | **5** |\n"}
+Report scritto in `../logs/api_status_2026-04-22.md`.
+
+**Risultati:**
+- **In Progress:** 5 elementi (billing/webhook, billing/cancel, admin plan removed, auth/me dual limits, voice-bot-ws dual limits)
+- **Pending:** 0 elementi
+- **Totale:** 5
+
+Tutti gli elementi pending sono stati completati nelle sessioni precedenti. Restano 5 cambiamenti in progress, tutti breaking o critici, concentrati su billing e rate limits.
+
+Done - cost: $0.6952, turns: 22
+
