@@ -24,8 +24,6 @@
     "network": "bridge"
   },
   "environment": {
-    "clone_repo": "https://github.com/elder-plinius/CL4R1T4S",
-    "clone_branch": "main",
     "isolated_runs": true,
     "keep_executions": true
   }

@@ -218,6 +218,12 @@ class RoutineConfig:
             with filtered_settings_path.open("w", encoding="utf-8") as sf:
                 json.dump(settings_data, sf, indent=2)
 
+            container_home_dir = runtime_dir / "docker_home"
+            container_claude_dir = container_home_dir / ".claude"
+            container_claude_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(LOCAL_CLAUDE_JSON_PATH, container_home_dir / ".claude.json")
+            shutil.copy2(filtered_settings_path, container_claude_dir / "settings.json")
+
             script_content = f"""#!/bin/bash
 # Wrapper globale per eseguire l'agent in Docker
 echo ">>> [Docker Wrapper] Esecuzione in container con network=$CLAUDE_DOCKER_NETWORK image=$CLAUDE_DOCKER_IMAGE" >&2
@@ -225,10 +231,10 @@ echo ">>> [Docker Wrapper] Esecuzione in container con network=$CLAUDE_DOCKER_NE
 exec docker run -i --rm \\
   --network "$CLAUDE_DOCKER_NETWORK" \\
   --user "$(id -u):$(id -g)" \\
-  -e HOME=/root \\
+  -e HOME=/tmp/claude-home \\
+  -e npm_config_cache=/tmp/claude-home/.npm \\
   -v "$PWD:/env" \\
-  -v "{LOCAL_CLAUDE_JSON_PATH}:/root/.claude.json:ro" \\
-  -v "{filtered_settings_path}:/root/.claude/settings.json:ro" \\
+  -v "{container_home_dir}:/tmp/claude-home" \\
   $CLAUDE_DOCKER_VOLUMES \\
   -w /env \\
   "$CLAUDE_DOCKER_IMAGE" npx -y @anthropic-ai/claude-code@latest --permission-mode auto "$@"
