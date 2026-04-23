@@ -7,4 +7,6 @@ requires-python = ">=3.13"
 dependencies = [
     "apscheduler>=3.11.2",
     "claude-agent-sdk>=0.1.65",
+    "textual>=3.0.0",
+    "croniter>=2.0.0",
 ]

@@ -14,13 +14,19 @@
     ]
   },
   "model_config": {
-    "model": "sonnet",
-    "allowed_tools": ["Bash", "GlobMatch", "GrepSearch", "LS", "View", "FileRead", "FileWrite"],
+    "model": "haiku",
+    "allowed_tools": ["Bash", "GlobMatch", "GrepSearch", "LS", "View", "FileRead", "FileWriView", "FileRead", "FileWritete"],
     "sandbox": true
   },
   "docker": {
     "enabled": true,
     "image": "node:20",
     "network": "bridge"
+  },
+  "environment": {
+    "clone_repo": "https://github.com/elder-plinius/CL4R1T4S",
+    "clone_branch": "main",
+    "isolated_runs": true,
+    "keep_executions": true
   }
 }

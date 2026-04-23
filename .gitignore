@@ -1,2 +1,3 @@
 # ignora .venv in src/
 src/.venv/
+.runtime/
