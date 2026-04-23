@@ -19,6 +19,7 @@ build-backend = "setuptools.build_meta"
 [project.scripts]
 env-check = "cli.env_check:main"
 setup-config = "cli.setup_config:main"
+onboard = "cli.onboard:main"
 
 [tool.uv]
 package = true
