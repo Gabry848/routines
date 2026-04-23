@@ -12,5 +12,16 @@ dependencies = [
     "textual>=3.0.0",
 ]
 
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project.scripts]
 env-check = "cli.env_check:main"
+setup-config = "cli.setup_config:main"
+
+[tool.uv]
+package = true
+
+[tool.setuptools]
+packages = ["cli", "scheduler"]

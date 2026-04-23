@@ -1,38 +1,12 @@
-import json
-from pathlib import Path
 from typing import Any
+from pathlib import Path
 
+from .project_config import discover_local_mcp_servers
 
 def discover_mcp_servers(
-    project_root: Path | None = None,
+    project_root: object | None = None,
 ) -> dict[str, dict[str, Any]]:
-    home = Path.home()
-    servers: dict[str, dict[str, Any]] = {}
-
-    sources = [
-        home / ".claude.json",
-        home / ".claude" / "settings.json",
-    ]
-
-    if project_root:
-        sources.append(project_root / ".claude" / "settings.json")
-        sources.append(project_root / ".mcp.json")
-
-    for path in sources:
-        if not path.exists():
-            continue
-        try:
-            with path.open("r", encoding="utf-8") as f:
-                data = json.load(f)
-            if not isinstance(data, dict):
-                continue
-            mcp = data.get("mcpServers", {})
-            if isinstance(mcp, dict):
-                servers.update(mcp)
-        except (json.JSONDecodeError, OSError):
-            continue
-
-    return servers
+    return discover_local_mcp_servers()
 
 
 def resolve_server_names(

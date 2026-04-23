@@ -52,10 +52,12 @@ routines/
 ```bash
 cd src
 uv sync
+uv run setup-config
 uv run python main.py
 ```
 
-The scheduler discovers all enabled routines and runs them on their cron schedules.
+`setup-config` saves the Claude/MCP configuration used by the scheduler into `.config/routines`.
+The scheduler then discovers all enabled routines and runs them on their cron schedules without reading `~/.claude*` at runtime.
 
 ## Routine anatomy
 

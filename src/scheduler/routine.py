@@ -11,19 +11,10 @@ from claude_agent_sdk import ClaudeAgentOptions
 from .agent import ClaudeAgent
 from .constants import *
 from .mcp_config import resolve_server_names
+from .project_config import build_runtime_settings, ensure_local_config_dirs
 
 
 class RoutineConfig:
-    DOCKER_SETTINGS_ENV_KEYS = {
-        "ANTHROPIC_AUTH_TOKEN",
-        "ANTHROPIC_BASE_URL",
-        "API_TIMEOUT_MS",
-        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
-        "ANTHROPIC_DEFAULT_HAIKU_MODEL",
-        "ANTHROPIC_DEFAULT_SONNET_MODEL",
-        "ANTHROPIC_DEFAULT_OPUS_MODEL",
-    }
-
     MODEL_CONFIG_DEFAULTS: dict[str, Any] = {
         "tools": None,
         "allowed_tools": [],
@@ -131,37 +122,6 @@ class RoutineConfig:
                 self.prompt_text = prompt_path.read_text(encoding="utf-8")
                 return
 
-    def _build_docker_runtime_settings(self) -> dict[str, Any]:
-        source_path = Path.home() / ".claude" / "settings.json"
-
-        try:
-            with source_path.open("r", encoding="utf-8") as sf:
-                source_data = json.load(sf)
-        except (FileNotFoundError, json.JSONDecodeError, OSError):
-            return {}
-
-        if not isinstance(source_data, dict):
-            return {}
-
-        runtime_settings: dict[str, Any] = {}
-
-        source_env = source_data.get("env", {})
-        if isinstance(source_env, dict):
-            filtered_env = {
-                key: value
-                for key, value in source_env.items()
-                if key in self.DOCKER_SETTINGS_ENV_KEYS
-            }
-            if filtered_env:
-                runtime_settings["env"] = filtered_env
-
-        for key in ("enabledPlugins", "extraKnownMarketplaces"):
-            value = source_data.get(key)
-            if isinstance(value, dict) and value:
-                runtime_settings[key] = value
-
-        return runtime_settings
-
     def get_timezone(self, default: str = "UTC") -> str:
         scheduler = self.config_data.get("scheduler", {})
         if not isinstance(scheduler, dict):
@@ -241,6 +201,7 @@ class RoutineConfig:
             image = docker_config.get("image", "node:20")
             network = docker_config.get("network", "bridge")
             extra_volumes = docker_config.get("extra_volumes", [])
+            ensure_local_config_dirs()
             
             runtime_dir = PROJECT_ROOT / ".runtime" / "scheduler" / self.routine_dir_name
             runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -253,7 +214,7 @@ class RoutineConfig:
             # Genera un settings.json runtime minimale con solo auth/config strettamente
             # necessarie al container, senza ereditare permissions o altri default globali.
             filtered_settings_path = runtime_dir / "docker_settings.json"
-            settings_data = self._build_docker_runtime_settings()
+            settings_data = build_runtime_settings()
             with filtered_settings_path.open("w", encoding="utf-8") as sf:
                 json.dump(settings_data, sf, indent=2)
 
@@ -266,9 +227,8 @@ exec docker run -i --rm \\
   --user "$(id -u):$(id -g)" \\
   -e HOME=/root \\
   -v "$PWD:/env" \\
-  -v "$HOME/.claude.json:/root/.claude.json:ro" \\
+  -v "{LOCAL_CLAUDE_JSON_PATH}:/root/.claude.json:ro" \\
   -v "{filtered_settings_path}:/root/.claude/settings.json:ro" \\
-  -v "$HOME/.claude:/root/.claude" \\
   $CLAUDE_DOCKER_VOLUMES \\
   -w /env \\
   "$CLAUDE_DOCKER_IMAGE" npx -y @anthropic-ai/claude-code@latest --permission-mode auto "$@"

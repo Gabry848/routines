@@ -423,7 +423,7 @@ class CreateRoutineApp(App):
             container.mount(
                 Static(
                     "No MCP servers found.\n"
-                    "Configure servers in ~/.claude.json or .mcp.json first.",
+                    "Run `setup-config` and save the MCP config into `.config/routines` first.",
                     classes="mcp-none",
                 )
             )
