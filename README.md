@@ -1,76 +1,68 @@
-# Routines
+# AI Routines Scheduler
 
-Automated routine scheduler powered by Claude. Define recurring AI tasks — like Anthropic's Claude Code routines — and run them on cron schedules autonomously.
+Welcome to AI Routines Scheduler. This project allows you to create and schedule AI "mini-agents" (Routines) that perform tasks autonomously using Claude.
 
-## What are Routines?
+---
 
-Routines are **automated, recurring tasks executed by a Claude AI agent**. Think of them as cron jobs where the worker is an AI assistant instead of a script.
+## Features
 
-You define **what** the AI should do (via a prompt), **when** it should run (via cron), and **which tools** it has access to. The scheduler handles the rest.
+- Flexible Scheduling: Use Cron expressions to decide when your agents should start.
+- Secure Isolation: Support for Docker and isolated execution environments (ephemeral envs).
+- MCP Integration: Connect your MCP servers (GitHub, Notion, Google Drive, etc.) to enhance your routines.
+- Automatic Setup: An onboarding script guides you through the initial configuration.
+- TUI Wizard: Create new routines visually and easily.
 
-### Use cases
+---
 
-| Example | What it does |
-|---|---|
-| `notion-backlog-report` | Daily backlog digest from Notion database |
-| `notizie` | News analysis at scheduled times |
-| Code review bot | Reviews PRs every morning |
-| Email summarizer | Summarizes unread emails hourly |
-| Server monitor | Checks health endpoints every 30 min |
-| Documentation updater | Syncs docs from code changes weekly |
+## Quick Start
 
-## How it works
+Follow these steps to configure the project and create your first routine in less than 2 minutes.
 
-```
-routines/
-├── notion-backlog-report/    ← one routine
-│   ├── config.json           ← schedule + agent config
-│   ├── PROMT.md              ← the prompt sent to Claude
-│   ├── env/                  ← agent working directory
-│   ├── setup.sh              ← optional pre-run script
-│   └── logs/                 ← execution logs (auto-created)
-├── notizie/                  ← another routine
-└── example/                  ← minimal example
-```
-
-1. **Scheduler** (`src/scheduler/`) scans `routines/` for subdirectories
-2. Each directory with a valid `config.json` is a routine
-3. At the scheduled time, it spins up a Claude agent with the configured options
-4. The agent executes the prompt in `PROMT.md` with access to specified tools and MCP servers
-5. Logs are written to `logs/`
-
-## Quick start
-
-### Prerequisites
-
-- Python 3.13+
-- [uv](https://docs.astral.sh/uv/) package manager
-- A Claude API key or Claude Code setup
-
-### Install and run
-
+### 1. Installation and Setup
+Navigate to the `src` folder and run the automatic onboarding:
 ```bash
 cd src
 uv sync
 uv run onboard
-uv run python main.py
+```
+The onboarding will install dependencies, check your environment, and configure the necessary keys.
+
+### 2. Create your first Routine
+There are three ways to create a routine:
+- Visual (Recommended): Run the TUI wizard:
+  ```bash
+  uv run -m cli.create_routine
+  ```
+- With AI: If you are using this guide with an AI agent, use the `skills/create-routine/.md` skill.
+- Manual: Create the files following the anatomy described below.
+
+### 3. Start the Scheduler
+Once the routine is created, start the main program to queue it:
+```bash
+uv run main.py
+```
+The scheduler will remain active and start the routines at the pre-established times.
+
+---
+
+## Routine Anatomy
+
+Each routine lives in its dedicated folder inside `routines/`. Here is how it must be structured to function correctly:
+
+```text
+routines/<routine-name>/
+├── config.json      # Technical configuration (schedule, model, tools)
+├── PROMT.md         # Instructions (system prompt) for the agent
+├── setup.sh         # (Optional) Script to run before the agent
+├── env/             # Agent working directory
+└── logs/            # Logs of past executions
 ```
 
-`onboard` runs dependency checks, proposes automatic installs when possible, and saves the Claude/MCP configuration used by the scheduler into `.config/routines`.
-The scheduler then discovers all enabled routines and runs them on their cron schedules without reading `~/.claude*` at runtime.
-
-## Routine anatomy
-
-### config.json
+### Manual Configuration (config.json)
+A minimal example of a valid configuration:
 
 ```json
 {
-  "model_config": {
-    "model": "sonnet",
-    "mcp_servers": ["notion"],
-    "allowed_tools": ["Bash", "Read", "Edit"],
-    "load_timeout_ms": 60000
-  },
   "scheduler": {
     "enabled": true,
     "timezone": "Europe/Rome",
@@ -79,142 +71,33 @@ The scheduler then discovers all enabled routines and runs them on their cron sc
         "job_name": "my-routine",
         "schedule": {
           "type": "cron",
-          "expression": "0 9 * * *",
-          "metadata": {
-            "description": "Runs daily at 9am",
-            "retry_on_failure": false
-          }
-        },
-        "startup_script": "setup.sh"
+          "expression": "0 9 * * *"
+        }
       }
     ]
+  },
+  "model_config": {
+    "model": "sonnet",
+    "allowed_tools": ["Bash", "Read", "Edit"],
+    "load_timeout_ms": 60000
   }
 }
 ```
 
-**model_config** — Claude agent options:
-| Field | Default | Description |
-|---|---|---|
-| `model` | `sonnet` | Claude model (`sonnet`, `opus`, `haiku`) |
-| `mcp_servers` | `[]` | MCP servers the agent can use |
-| `allowed_tools` | `["Bash","Read","Edit"]` | Tools the agent can access |
-| `max_turns` | — | Max conversation turns |
-| `max_budget_usd` | — | Cost cap per run |
+---
 
-**scheduler** — when to run:
-| Field | Description |
-|---|---|
-| `enabled` | `true` to activate |
-| `timezone` | IANA timezone (e.g. `Europe/Rome`) |
-| `tasks[].schedule.expression` | Cron expression |
-| `tasks[].startup_script` | Script to run before agent starts |
+## Advanced Functions
 
-### PROMT.md
+- Docker: You can run the agent inside a container by adding the "docker": {"enabled": true, "image": "node:20"} section.
+- Git Clone: You can instruct the routine to clone a GitHub repository before starting work in the environment section.
+- MCP: Enable external servers by adding their names in mcp_servers.
 
-The prompt the Claude agent receives. Be specific and actionable — the agent runs autonomously.
+---
 
-Example:
-```markdown
-Connect to the Notion database "My Project".
-List all open tasks grouped by priority.
-Write a summary to logs/report_{{date}}.md.
-```
+## Credits
 
-### setup.sh (optional)
+Created by Gabriele, a 16-year-old from Italy passionate about programming and AI.
 
-Runs before the Claude agent. Use for environment prep:
+---
 
-```sh
-#!/usr/bin/env sh
-set -eu
-echo "Routine started at $(date)"
-mkdir -p output
-```
-
-## Creating a routine
-
-### Option 1: Using the skill (recommended)
-
-The project includes a Claude Code skill that guides you through creating a new routine.
-
-#### Install the skill on your Claude Code agent
-
-Copy the skill into your `.claude/skills/` directory:
-
-```bash
-# From the project root
-mkdir -p .claude/skills
-cp skills/new-routine.md .claude/skills/new-routine/SKILL.md
-```
-
-Then in Claude Code, type:
-
-```
-/new-routine
-```
-
-The skill will ask you for the routine name, what it should do, the schedule, and handle file creation.
-
-#### Install globally (available in all projects)
-
-```bash
-mkdir -p ~/.claude/skills/new-routine
-cp skills/new-routine.md ~/.claude/skills/new-routine/SKILL.md
-```
-
-### Option 2: Manual creation
-
-1. Create the directory structure:
-
-```bash
-mkdir -p routines/my-routine/env routines/my-routine/logs
-```
-
-2. Write `routines/my-routine/config.json` with schedule and model config (see template above).
-
-3. Write `routines/my-routine/PROMT.md` with your prompt.
-
-4. (Optional) Create `routines/my-routine/setup.sh` and make it executable:
-
-```bash
-chmod +x routines/my-routine/setup.sh
-```
-
-5. Restart the scheduler — it auto-discovers new routines.
-
-### Cron expression reference
-
-```
-┌───────────── minute (0-59)
-│ ┌───────────── hour (0-23)
-│ │ ┌───────────── day of month (1-31)
-│ │ │ ┌───────────── month (1-12)
-│ │ │ │ ┌───────────── day of week (0-6, Sun=0)
-* * * * *
-```
-
-| Expression | Schedule |
-|---|---|
-| `0 9 * * *` | Every day at 09:00 |
-| `0 9 * * 1-5` | Weekdays at 09:00 |
-| `*/30 * * * *` | Every 30 minutes |
-| `0 9,18 * * *` | Twice daily |
-| `0 0 * * 0` | Every Sunday at midnight |
-
-## Architecture
-
-```
-src/
-├── main.py                 # Entry point
-├── scheduler/
-│   ├── app.py              # Scheduler bootstrap
-│   ├── engine.py           # Cron engine
-│   ├── loader.py           # Discovers + loads routines
-│   ├── routine.py          # Routine execution logic
-│   ├── agent.py            # Claude agent wrapper
-│   ├── cron.py             # Cron parsing
-│   └── constants.py        # Paths, defaults
-└── pyproject.toml
-```
-
-Flow: `main.py` → `app.py` → `loader.py` discovers routines → `engine.py` schedules them → `routine.py` executes each run → `agent.py` runs Claude via `claude-agent-sdk`.
+For more details, consult the files in scheduler/ to deepen your understanding of the engine.
