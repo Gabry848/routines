@@ -263,6 +263,7 @@ echo ">>> [Docker Wrapper] Esecuzione in container con network=$CLAUDE_DOCKER_NE
 
 exec docker run -i --rm \\
   --network "$CLAUDE_DOCKER_NETWORK" \\
+  --user "$(id -u):$(id -g)" \\
   -e HOME=/root \\
   -v "$PWD:/env" \\
   -v "$HOME/.claude.json:/root/.claude.json:ro" \\
