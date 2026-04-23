@@ -11,6 +11,25 @@ from .constants import *
 
 
 class RoutineConfig:
+    MODEL_CONFIG_DEFAULTS: dict[str, Any] = {
+        "tools": None,
+        "allowed_tools": [],
+        "mcp_servers": {},
+        "max_turns": None,
+        "max_budget_usd": None,
+        "disallowed_tools": [],
+        "model": DEFAULT_MODEL,
+        "add_dirs": [],
+        "env": {},
+        "skills": None,
+        "sandbox": None,
+        "plugins": [],
+        "thinking": None,
+        "effort": None,
+        "session_store": None,
+        "load_timeout_ms": 60000,
+    }
+
     def __init__(self, routine_dir_name: str) -> None:
         self.routine_dir_name = routine_dir_name
         self.routine_path = ROUTINES_PATH / routine_dir_name
@@ -21,10 +40,42 @@ class RoutineConfig:
     def load(self) -> "RoutineConfig":
         self._load_config_json()
         self._load_prompt_file()
-        self.model_config = self.config_data.get("model_config", {})
-        if not isinstance(self.model_config, dict):
-            self.model_config = {}
+        raw_model_config = self.config_data.get("model_config", {})
+        self.model_config = self._sanitize_model_config(raw_model_config)
         return self
+
+    def _sanitize_model_config(self, raw_model_config: Any) -> dict[str, Any]:
+        if not isinstance(raw_model_config, dict):
+            raw_model_config = {}
+
+        sanitized = dict(self.MODEL_CONFIG_DEFAULTS)
+
+        for key in self.MODEL_CONFIG_DEFAULTS:
+            if key not in raw_model_config:
+                continue
+
+            value = raw_model_config[key]
+
+            if key in {"allowed_tools", "disallowed_tools", "add_dirs", "plugins"}:
+                sanitized[key] = value if isinstance(value, list) else []
+                continue
+
+            if key in {"mcp_servers", "env"}:
+                sanitized[key] = value if isinstance(value, dict) else {}
+                continue
+
+            if key == "model":
+                sanitized[key] = value if isinstance(value, str) and value else DEFAULT_MODEL
+                continue
+
+            if key == "load_timeout_ms":
+                sanitized[key] = value if isinstance(value, int) and value > 0 else 60000
+                continue
+
+            if key in {"max_turns", "max_budget_usd", "skills", "sandbox", "session_store", "tools", "thinking", "effort"}:
+                sanitized[key] = value
+
+        return sanitized
 
     def _load_config_json(self) -> None:
         config_path = self.routine_path / "config.json"
@@ -86,7 +137,7 @@ class RoutineConfig:
         options_payload["cwd"] = ROUTINES_PATH / self.routine_dir_name / "env"
         options_payload["model"] = options_payload.get("model") or DEFAULT_MODEL
         options_payload["allowed_tools"] = options_payload.get("allowed_tools") or DEFAULT_TOOLS
-        if "sandbox" not in options_payload:
+        if options_payload.get("sandbox") is None:
             options_payload["sandbox"] = True
         return ClaudeAgentOptions(**options_payload)
 
