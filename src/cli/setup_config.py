@@ -189,15 +189,16 @@ def choose_claude_json_source(existing: dict[str, Any]) -> dict[str, Any]:
     return {}
 
 
-def main() -> None:
-    console.print(
+def run_setup(show_intro: bool = True) -> None:
+    if show_intro:
+        console.print(
         Panel(
             "Questa procedura crea una configurazione locale in `.config/routines`.\n"
             "Dopo il setup il programma usera' solo questi file e non leggera' `~/.claude*`.",
             title="Routine Setup",
             expand=False,
         )
-    )
+        )
 
     ensure_local_config_dirs()
 
@@ -232,6 +233,10 @@ def main() -> None:
     console.print(f"- settings: {LOCAL_CLAUDE_SETTINGS_PATH}")
     console.print(f"- claude.json: {LOCAL_CLAUDE_JSON_PATH}")
     console.print(f"- root config: {LOCAL_CONFIG_PATH}")
+
+
+def main() -> None:
+    run_setup(show_intro=True)
 
 
 if __name__ == "__main__":
