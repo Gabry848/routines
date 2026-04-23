@@ -636,6 +636,7 @@ dependencies = [
     { name = "apscheduler" },
     { name = "claude-agent-sdk" },
     { name = "croniter" },
+    { name = "rich" },
     { name = "textual" },
 ]
 
@@ -644,6 +645,7 @@ requires-dist = [
     { name = "apscheduler", specifier = ">=3.11.2" },
     { name = "claude-agent-sdk", specifier = ">=0.1.65" },
     { name = "croniter", specifier = ">=2.0.0" },
+    { name = "rich", specifier = ">=14.1.0" },
     { name = "textual", specifier = ">=3.0.0" },
 ]
 
