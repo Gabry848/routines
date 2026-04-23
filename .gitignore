@@ -1,3 +1,12 @@
 # ignora .venv in src/
 src/.venv/
 .runtime/
+
+.config/
+src/src.egg-info/
+
+# ignora tute le pycache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
