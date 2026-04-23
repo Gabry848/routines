@@ -7,5 +7,5 @@ from .loader import load_jobs
 
 async def run_scheduler(base_path: Path = ROUTINES_PATH) -> None:
     jobs = load_jobs(base_path)
-    scheduler = RoutineScheduler(jobs)
+    scheduler = RoutineScheduler(jobs, base_path=base_path)
     await scheduler.run_forever()

@@ -237,12 +237,19 @@ exec docker run -i --rm \\
   -v "{container_home_dir}:/tmp/claude-home" \\
   $CLAUDE_DOCKER_VOLUMES \\
   -w /env \\
-  "$CLAUDE_DOCKER_IMAGE" npx -y @anthropic-ai/claude-code@latest --permission-mode auto "$@"
+  "$CLAUDE_DOCKER_IMAGE" npx -y @anthropic-ai/claude-code@latest "$@"
 """
             wrapper_path.write_text(script_content)
             wrapper_path.chmod(0o755)
             
             options_payload["cli_path"] = str(wrapper_path)
+            options_payload["permission_mode"] = options_payload.get("permission_mode") or "acceptEdits"
+
+            add_dirs = options_payload.get("add_dirs") or []
+            add_dirs = [str(path) for path in add_dirs]
+            if "/tmp/claude-home" not in add_dirs:
+                add_dirs.append("/tmp/claude-home")
+            options_payload["add_dirs"] = add_dirs
             
             # Passiamo le opzioni variabili al wrapper iniettandole nell'env del thread locale Python
             custom_env = options_payload.get("env") or {}
@@ -258,14 +265,31 @@ class Routine:
     def __init__(
         self,
         routine_dir_name: str,
+        task_id: str,
         routine_name: str,
         timezone: str,
         cron_expression: str,
+        startup_script: str | None = None,
     ) -> None:
         self.routine_dir_name = routine_dir_name
+        self.task_id = task_id
         self.routine_name = routine_name
         self.timezone = timezone
         self.cron_expression = cron_expression
+        self.startup_script = startup_script
+
+    @property
+    def scheduler_job_id(self) -> str:
+        return f"{self.routine_dir_name}:{self.task_id}"
+
+    @property
+    def signature(self) -> tuple[str, str, str, str | None]:
+        return (
+            self.routine_name,
+            self.timezone,
+            self.cron_expression,
+            self.startup_script,
+        )
 
     def _setup(self, startup_script: str | None, target_dir: Path) -> None:
         """Logic to execute before each routine start."""
@@ -337,11 +361,7 @@ class Routine:
                 chmod_cmd = ["chmod", "-R", "a+w", "."]
                 subprocess.run(chmod_cmd, cwd=target_dir, check=True)
 
-        startup_script = runtime_config.startup_script_for(
-            job_name=self.routine_name,
-            cron_expression=self.cron_expression,
-        )
-        self._setup(startup_script, target_dir)
+        self._setup(self.startup_script, target_dir)
 
         agent_options = runtime_config.build_agent_options(target_dir)
         runtime_prompt = runtime_config.prompt_text.strip()

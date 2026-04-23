@@ -57,9 +57,11 @@ async def run_routine(routine_dir_name: str) -> None:
 
     routine = Routine(
         routine_dir_name=routine_dir_name,
+        task_id="test-task",
         routine_name=job_name,
         timezone=scheduler.get("timezone", "UTC"),
         cron_expression=cron_expression,
+        startup_script=task.get("startup_script") if tasks else None,
     )
     
     await routine.start()
