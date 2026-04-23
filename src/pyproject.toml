@@ -8,6 +8,7 @@ dependencies = [
     "apscheduler>=3.11.2",
     "claude-agent-sdk>=0.1.65",
     "croniter>=2.0.0",
+    "fastmcp>=2.3.0",
     "rich>=14.1.0",
     "textual>=3.0.0",
 ]
@@ -20,9 +21,15 @@ build-backend = "setuptools.build_meta"
 env-check = "cli.env_check:main"
 setup-config = "cli.setup_config:main"
 onboard = "cli.onboard:main"
+mcp-server = "scheduler.app:run_scheduler_with_mcp"
 
 [tool.uv]
 package = true
 
 [tool.setuptools]
-packages = ["cli", "scheduler"]
+packages = ["cli", "scheduler", "mcp_server"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
