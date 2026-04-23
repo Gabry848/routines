@@ -92,7 +92,6 @@ STEP_TITLES = [
     "Summary",
 ]
 
-
 class KebabCaseValidator(Validator):
     def validate(self, value: str) -> ValidationResult:
         if not value:
@@ -116,9 +115,18 @@ class CreateRoutineApp(App):
     }
 
     .step-title {
+        width: 1fr;
+        text-align: center;
         text-style: bold;
-        margin-bottom: 1;
+        margin-bottom: 0;
         color: $text;
+    }
+
+    #step-subtitle {
+        width: 1fr;
+        text-align: center;
+        margin-bottom: 1;
+        color: $text-disabled;
     }
 
     .info {
@@ -172,7 +180,16 @@ class CreateRoutineApp(App):
     .nav-bar {
         height: 3;
         padding: 0 2;
-        align: right middle;
+        align: left middle;
+    }
+
+    #footer-progress {
+        width: 1fr;
+        color: $success;
+    }
+
+    #footer-actions {
+        width: auto;
     }
 
     .docker-fields {
@@ -203,12 +220,14 @@ class CreateRoutineApp(App):
         yield Header()
         with Vertical(classes="screen"):
             with VerticalScroll(classes="main"):
-                yield Static(id="step-indicator")
                 yield Label(id="step-title", classes="step-title")
+                yield Static(id="step-subtitle")
                 yield VerticalScroll(id="content")
             with Horizontal(classes="nav-bar"):
-                yield Button("< Back", id="btn-back", disabled=True)
-                yield Button("Next >", id="btn-next", variant="primary")
+                yield Static(id="footer-progress")
+                with Horizontal(id="footer-actions"):
+                    yield Button("< Back", id="btn-back", disabled=True)
+                    yield Button("Next >", id="btn-next", variant="primary")
         yield Footer()
 
         self._current_step = 0
@@ -221,12 +240,16 @@ class CreateRoutineApp(App):
     async def _render_step(self, step: int) -> None:
         self._current_step = step
 
-        step_nums = " ".join(str(i + 1) for i in range(len(STEP_TITLES)))
-        self.query_one("#step-indicator", Static).update(
-            f"Step {step_nums} of {len(STEP_TITLES)}: {STEP_TITLES[step]}"
-        )
+        visible_steps = self._visible_steps(step)
+        visible_index = visible_steps.index(step)
+        visible_total = len(visible_steps)
+
         self.query_one("#step-title", Label).update(
-            f"Step {step + 1}: {STEP_TITLES[step]}"
+            f"Passaggio {visible_index + 1:02d} di {visible_total:02d}"
+        )
+        self.query_one("#step-subtitle", Static).update(STEP_TITLES[step])
+        self.query_one("#footer-progress", Static).update(
+            self._render_progress_bar(visible_index + 1, visible_total)
         )
 
         content = self.query_one("#content", VerticalScroll)
@@ -244,6 +267,17 @@ class CreateRoutineApp(App):
         else:
             next_btn.label = "Next >"
             next_btn.variant = "primary"
+
+    def _visible_steps(self, current_step: int) -> list[int]:
+        return [
+            index
+            for index in range(len(STEP_TITLES))
+            if index != 5 or current_step <= 5 or self._data.get("mcp_servers")
+        ]
+
+    def _render_progress_bar(self, current: int, total: int, width: int = 24) -> str:
+        filled = max(1, round((current / total) * width))
+        return f"[{'█' * filled}{'░' * (width - filled)}] {current}/{total}"
 
     def _collect_step(self, step: int) -> bool:
         collector = getattr(self, f"_collect_step_{step}", None)
