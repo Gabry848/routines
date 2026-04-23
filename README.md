@@ -52,11 +52,11 @@ routines/
 ```bash
 cd src
 uv sync
-uv run setup-config
+uv run onboard
 uv run python main.py
 ```
 
-`setup-config` saves the Claude/MCP configuration used by the scheduler into `.config/routines`.
+`onboard` runs dependency checks, proposes automatic installs when possible, and saves the Claude/MCP configuration used by the scheduler into `.config/routines`.
 The scheduler then discovers all enabled routines and runs them on their cron schedules without reading `~/.claude*` at runtime.
 
 ## Routine anatomy
