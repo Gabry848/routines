@@ -2,6 +2,8 @@
 
 ![Routines](./resources/copertina.png)
 
+<video src="resources/demo.mp4" controls="controls" muted="muted" width="100%"></video>
+
 Run AI agents on a schedule, not by hand.
 
 Routines is a scheduler for Claude Code / Codex agents that lets you define recurring jobs, isolate their runtime, and manage everything through an MCP server. Instead of reopening the same workflow every morning, every week, or after every event, you define it once and let it run.
@@ -96,18 +98,32 @@ This means you can operate the scheduler from the same agent environment where y
 
 Set up the project and create your first routine in a few minutes.
 
-### 1. Install dependencies
+### 1. Bootstrap the project
 
-From the `src` directory:
+From the repository root:
 
 ```bash
-cd src
-uv sync
+./bootstrap.sh
+```
+
+This script:
+
+- checks for Python 3.13+
+- uses `uv` to sync dependencies in `src/`
+- launches the interactive onboarding flow
+
+If `uv` is not installed yet:
+
+```bash
+./bootstrap.sh --install-uv
 ```
 
 ### 2. Run onboarding
 
+If you skipped it during bootstrap:
+
 ```bash
+cd src
 uv run onboard
 ```
 
@@ -123,6 +139,7 @@ The onboarding flow:
 Recommended path:
 
 ```bash
+cd src
 uv run -m cli.create_routine
 ```
 
@@ -134,6 +151,7 @@ Other options:
 ### 4. Start the scheduler and MCP server
 
 ```bash
+cd src
 uv run mcp-server
 ```
 
@@ -146,12 +164,14 @@ http://127.0.0.1:8080/mcp
 To expose it on your network, start it programmatically with an explicit host you chose, for example:
 
 ```bash
+cd src
 uv run python -c "from scheduler.app import run_scheduler_with_mcp; run_scheduler_with_mcp(host='0.0.0.0')"
 ```
 
 If you only want the scheduler without MCP:
 
 ```bash
+cd src
 uv run python -c "from scheduler.app import run_scheduler; run_scheduler()"
 ```
 
