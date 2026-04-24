@@ -11,11 +11,23 @@ Default safety posture:
 - the MCP and trigger API bind to `127.0.0.1` by default
 - if you intentionally expose the server beyond localhost, set `SCHEDULER_MCP_API_KEY`
 
+## Why I Built This
+
+I built Routines because I wanted an open source and more flexible alternative to Anthropic's routines, with one important addition: an MCP control plane.
+
+That combination matters for my workflow:
+
+- I wanted routines I could inspect, version, and customize locally
+- I wanted more control over model config, tools, MCP servers, startup scripts, and runtime layout
+- I wanted to manage those routines from Claude Code / Codex through MCP instead of stitching together shell scripts and manual edits
+
+Routines is opinionated about being local-first and agent-operated, not a hosted automation product.
+
 ## What You Get
 
 - Scheduled AI work: run agents on cron schedules.
 - Repeatable execution: each routine has a prompt, config, optional setup script, and working directory.
-- Safer runtime boundaries: keep agent work inside a local env and optionally run inside Docker.
+- Contained runtime options: keep agent work inside a local env, optionally run inside Docker, and keep the server bound to localhost by default.
 - Remote control via MCP: create, update, validate, run, and inspect routines directly from Claude Code / Codex.
 - Optional HTTP trigger API: start a routine from an external system without bypassing the scheduler runtime.
 - Faster onboarding: interactive setup bootstraps local config in `.config/routines`.
@@ -59,9 +71,11 @@ The scheduler loads those routines, runs enabled tasks on cron schedules, and ex
 
 ### 3. Isolation options
 
-- Local sandboxed execution
+- Filesystem sandbox enabled by default for agent runs
 - Optional Docker runtime with custom image
 - Optional startup script before the agent runs
+
+Permission prompts are intentionally skipped for unattended runs, so treat tool allowlists, MCP exposure, and Docker/network settings as part of the security model.
 
 ### 4. MCP control plane
 
