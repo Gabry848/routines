@@ -15,7 +15,7 @@ def run_scheduler(base_path: Path = ROUTINES_PATH) -> None:
 
 def run_scheduler_with_mcp(
     base_path: Path = ROUTINES_PATH,
-    host: str = "0.0.0.0",
+    host: str = "127.0.0.1",
     port: int = 8080,
 ) -> None:
     """Run the scheduler with the MCP server (HTTP streamable transport)."""

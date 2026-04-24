@@ -4,6 +4,8 @@ src/.venv/
 
 .config/
 *.egg-info/
+src/build/
+src/dist/
 
 .codex/
 .pytest_cache/

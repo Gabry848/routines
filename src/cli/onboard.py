@@ -33,7 +33,7 @@ def prompt_yes_no(question: str, default: bool = True) -> bool:
             return True
         if answer in {"n", "no"}:
             return False
-        console.print("[red]Risposta non valida.[/red]")
+        console.print("[red]Invalid answer.[/red]")
 
 
 def choose_install_plan(name: str) -> InstallPlan | None:
@@ -101,14 +101,14 @@ def render_intro() -> None:
     console.print(
         Panel.fit(
             "Routines onboard\n\n"
-            "- Configura l'ambiente locale del progetto\n"
-            "- Controlla dipendenze una per volta\n"
-            "- Ti propone installazioni automatiche quando possibile\n"
-            "- Salva la config Claude/MCP in `.config/routines`\n\n"
+            "- Configures the local project environment\n"
+            "- Checks dependencies one by one\n"
+            "- Offers automatic install commands when available\n"
+            "- Stores Claude/MCP config in `.config/routines`\n\n"
             "Disclaimer\n"
-            "- Il progetto puo' leggere file locali, usare tool e lanciare processi.\n"
-            "- Mantieni token e credenziali sotto il tuo controllo.\n"
-            "- Se abiliti Docker o plugin MCP, verifica bene cosa stai esponendo.",
+            "- This project can read local files, use tools, and launch processes.\n"
+            "- Keep tokens and credentials under your control.\n"
+            "- If you enable Docker or MCP plugins, verify what you are exposing.",
             title="Onboarding",
             border_style="blue",
         )
@@ -118,17 +118,17 @@ def render_intro() -> None:
 def render_system_info() -> None:
     os_name, os_description = env_check.detect_os()
     console.print("")
-    console.print(f"1. Sistema: [bold]{os_name}[/bold] | {os_description}")
+    console.print(f"1. System: [bold]{os_name}[/bold] | {os_description}")
 
 
 def check_component(detector: callable) -> env_check.CheckResult:
     result = detector()
-    status = "ok" if result.installed else "mancante"
+    status = "ok" if result.installed else "missing"
     color = "green" if result.installed else "yellow"
     console.print("")
     console.print(f"2. [bold]{result.name}[/bold]")
-    console.print(f"   Stato: [{color}]{status}[/{color}]")
-    console.print(f"   Dettagli: {result.details}")
+    console.print(f"   Status: [{color}]{status}[/{color}]")
+    console.print(f"   Details: {result.details}")
     return result
 
 
@@ -136,50 +136,50 @@ def handle_missing_component(result: env_check.CheckResult) -> None:
     plan = choose_install_plan(result.name)
 
     if plan is None:
-        console.print("   Installazione automatica non disponibile.")
-        console.print(f"   Suggerimento: {result.install_help}")
+        console.print("   Automatic installation is not available.")
+        console.print(f"   Suggestion: {result.install_help}")
         return
 
     if plan.note:
-        console.print(f"   Nota: {plan.note}")
+        console.print(f"   Note: {plan.note}")
 
-    console.print(f"   Comando proposto: `{plan.command}`")
-    if not prompt_yes_no(f"   Vuoi provare a installare {result.name} adesso?", default=False):
+    console.print(f"   Proposed command: `{plan.command}`")
+    if not prompt_yes_no(f"   Try installing {result.name} now?", default=False):
         return
 
     ok = run_shell_command(plan.command)
     if ok:
-        console.print(f"   [green]{result.name} installato o comando completato.[/green]")
+        console.print(f"   [green]{result.name} installed, or the command completed successfully.[/green]")
     else:
-        console.print("   [red]Installazione non riuscita.[/red]")
-        console.print(f"   Suggerimento: {result.install_help}")
+        console.print("   [red]Installation failed.[/red]")
+        console.print(f"   Suggestion: {result.install_help}")
 
 
 def check_docker_runtime() -> None:
     console.print("")
     console.print("3. [bold]Docker Engine[/bold]")
     status, details = env_check.detect_docker_activity()
-    color = "green" if status == "Attivo" else "yellow"
-    console.print(f"   Stato: [{color}]{status}[/{color}]")
-    console.print(f"   Dettagli: {details}")
+    color = "green" if status == "Active" else "yellow"
+    console.print(f"   Status: [{color}]{status}[/{color}]")
+    console.print(f"   Details: {details}")
 
-    if status == "Non attivo" and platform.system() == "Linux" and shutil.which("systemctl"):
+    if status == "Not active" and platform.system() == "Linux" and shutil.which("systemctl"):
         command = "sudo systemctl start docker"
-        console.print(f"   Comando proposto: `{command}`")
-        if prompt_yes_no("   Vuoi provare ad avviare Docker adesso?", default=False):
+        console.print(f"   Proposed command: `{command}`")
+        if prompt_yes_no("   Try starting Docker now?", default=False):
             if run_shell_command(command):
-                console.print("   [green]Comando eseguito.[/green]")
+                console.print("   [green]Command completed.[/green]")
             else:
-                console.print("   [red]Avvio Docker non riuscito.[/red]")
+                console.print("   [red]Docker start failed.[/red]")
 
 
 def check_virtualenv() -> None:
     console.print("")
     console.print("4. [bold]Virtualenv[/bold]")
     status, details = env_check.detect_venv_status()
-    color = "green" if status == "Attivo" else "yellow"
-    console.print(f"   Stato: [{color}]{status}[/{color}]")
-    console.print(f"   Dettagli: {details}")
+    color = "green" if status == "Active" else "yellow"
+    console.print(f"   Status: [{color}]{status}[/{color}]")
+    console.print(f"   Details: {details}")
 
 
 def run_dependency_checks() -> None:
@@ -203,22 +203,22 @@ def run_dependency_checks() -> None:
 def main() -> None:
     render_intro()
     if not prompt_yes_no(
-        "Confermi di voler continuare con il setup locale del progetto?",
+        "Continue with the local project setup?",
         default=True,
     ):
-        console.print("Setup annullato.")
+        console.print("Setup cancelled.")
         return
 
     render_system_info()
     run_dependency_checks()
 
     console.print("")
-    console.print("5. [bold]Configurazione Claude[/bold]")
+    console.print("5. [bold]Claude Configuration[/bold]")
     setup_config.run_setup(show_intro=False)
 
     console.print("")
-    console.print("[green]Onboarding completato.[/green]")
-    console.print("Avvio consigliato: `uv run -m cli.create_routine` per generare le routine iniziali.")
+    console.print("[green]Onboarding complete.[/green]")
+    console.print("Recommended next step: `uv run -m cli.create_routine` to generate your first routines.")
 
 
 if __name__ == "__main__":

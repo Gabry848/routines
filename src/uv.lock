@@ -1009,6 +1009,37 @@ wheels = [
 ]
 
 [[package]]
+name = "routines"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "apscheduler" },
+    { name = "claude-agent-sdk" },
+    { name = "croniter" },
+    { name = "fastmcp" },
+    { name = "rich" },
+    { name = "textual" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "apscheduler", specifier = ">=3.11.2" },
+    { name = "claude-agent-sdk", specifier = ">=0.1.65" },
+    { name = "croniter", specifier = ">=2.0.0" },
+    { name = "fastmcp", specifier = ">=2.3.0" },
+    { name = "rich", specifier = ">=14.1.0" },
+    { name = "textual", specifier = ">=3.0.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.3" }]
+
+[[package]]
 name = "rpds-py"
 version = "0.30.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1095,37 +1126,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
 ]
-
-[[package]]
-name = "src"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "apscheduler" },
-    { name = "claude-agent-sdk" },
-    { name = "croniter" },
-    { name = "fastmcp" },
-    { name = "rich" },
-    { name = "textual" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "apscheduler", specifier = ">=3.11.2" },
-    { name = "claude-agent-sdk", specifier = ">=0.1.65" },
-    { name = "croniter", specifier = ">=2.0.0" },
-    { name = "fastmcp", specifier = ">=2.3.0" },
-    { name = "rich", specifier = ">=14.1.0" },
-    { name = "textual", specifier = ">=3.0.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.0.3" }]
 
 [[package]]
 name = "sse-starlette"

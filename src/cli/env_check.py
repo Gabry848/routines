@@ -65,15 +65,15 @@ def detect_python_install() -> CheckResult:
         return CheckResult(
             name="Python",
             installed=False,
-            status="Non installato",
-            details="Python non e' nel PATH.",
+            status="Not installed",
+            details="Python is not available in PATH.",
             install_help=python_install_help(),
         )
 
     return CheckResult(
         name="Python",
         installed=True,
-        status="Installato",
+        status="Installed",
         details=f"{python_bin} | {sys.version.split()[0]}",
         install_help=python_install_help(),
     )
@@ -85,8 +85,8 @@ def detect_uv_install() -> CheckResult:
         return CheckResult(
             name="uv",
             installed=False,
-            status="Non installato",
-            details="`uv` non e' nel PATH.",
+            status="Not installed",
+            details="`uv` is not available in PATH.",
             install_help=uv_install_help(),
         )
 
@@ -95,7 +95,7 @@ def detect_uv_install() -> CheckResult:
     return CheckResult(
         name="uv",
         installed=True,
-        status="Installato",
+        status="Installed",
         details=version,
         install_help=uv_install_help(),
     )
@@ -108,8 +108,8 @@ def detect_node_install() -> CheckResult:
         return CheckResult(
             name="Node.js / npm",
             installed=False,
-            status="Non installato",
-            details="`node` e/o `npm` non trovati nel PATH.",
+            status="Not installed",
+            details="`node` and/or `npm` were not found in PATH.",
             install_help=node_install_help(),
         )
 
@@ -118,7 +118,7 @@ def detect_node_install() -> CheckResult:
     return CheckResult(
         name="Node.js / npm",
         installed=True,
-        status="Installato",
+        status="Installed",
         details=f"{version} | npm: {npm_bin}",
         install_help=node_install_help(),
     )
@@ -130,8 +130,8 @@ def detect_claude_code_install() -> CheckResult:
         return CheckResult(
             name="Claude Code",
             installed=False,
-            status="Non installato",
-            details="Comando `claude` non trovato nel PATH.",
+            status="Not installed",
+            details="`claude` was not found in PATH.",
             install_help=claude_install_help(),
         )
 
@@ -140,7 +140,7 @@ def detect_claude_code_install() -> CheckResult:
     return CheckResult(
         name="Claude Code",
         installed=True,
-        status="Installato",
+        status="Installed",
         details=version,
         install_help=claude_install_help(),
     )
@@ -152,8 +152,8 @@ def detect_docker_install() -> CheckResult:
         return CheckResult(
             name="Docker",
             installed=False,
-            status="Non installato",
-            details="Comando `docker` non trovato nel PATH.",
+            status="Not installed",
+            details="`docker` was not found in PATH.",
             install_help=docker_install_help(),
         )
 
@@ -162,7 +162,7 @@ def detect_docker_install() -> CheckResult:
     return CheckResult(
         name="Docker",
         installed=True,
-        status="Installato",
+        status="Installed",
         details=version,
         install_help=docker_install_help(),
     )
@@ -170,32 +170,32 @@ def detect_docker_install() -> CheckResult:
 
 def detect_docker_activity() -> tuple[str, str]:
     if shutil.which("docker") is None:
-        return "Non verificabile", "Docker non e' installato."
+        return "Unavailable", "Docker is not installed."
 
     ok, output = run_command("docker", "info")
     if ok:
-        return "Attivo", "Il demone Docker risponde correttamente."
+        return "Active", "The Docker daemon is responding correctly."
 
     lowered = output.lower()
     if "permission denied" in lowered:
-        return "Non accessibile", (
-            "Docker e' installato ma l'utente corrente non ha accesso al socket. "
-            "Su Linux aggiungi l'utente al gruppo `docker` oppure usa `sudo`."
+        return "Permission denied", (
+            "Docker is installed but the current user cannot access the socket. "
+            "On Linux, add the user to the `docker` group or use `sudo`."
         )
     if "cannot connect" in lowered or "is the docker daemon running" in lowered:
-        return "Non attivo", docker_start_help()
-    return "Da verificare", output or "Docker e' installato, ma `docker info` non ha risposto come atteso."
+        return "Not active", docker_start_help()
+    return "Needs attention", output or "Docker is installed, but `docker info` did not respond as expected."
 
 
 def detect_venv_status() -> tuple[str, str]:
     virtual_env = os.environ.get("VIRTUAL_ENV")
     if virtual_env:
-        return "Attivo", f"Ambiente attivo: {virtual_env}"
+        return "Active", f"Active environment: {virtual_env}"
 
     if getattr(sys, "base_prefix", sys.prefix) != sys.prefix:
-        return "Attivo", f"Ambiente attivo: {sys.prefix}"
+        return "Active", f"Active environment: {sys.prefix}"
 
-    return "Non attivo", venv_help()
+    return "Not active", venv_help()
 
 
 def current_os_key() -> str:
@@ -210,17 +210,17 @@ def current_os_key() -> str:
 def python_install_help() -> str:
     help_map = {
         "linux": (
-            "Linux: usa il package manager. "
+            "Linux: use your package manager. "
             "Debian/Ubuntu `sudo apt install python3 python3-venv`, "
             "Fedora `sudo dnf install python3`, "
             "Arch `sudo pacman -S python`."
         ),
         "macos": (
-            "macOS: `brew install python` oppure installer ufficiale da python.org."
+            "macOS: `brew install python` or the official installer from python.org."
         ),
         "windows": (
-            "Windows: `winget install Python.Python.3.13` oppure installer ufficiale da python.org. "
-            "Durante l'installazione abilita `Add Python to PATH`."
+            "Windows: `winget install Python.Python.3.13` or the official installer from python.org. "
+            "Enable `Add Python to PATH` during installation."
         ),
     }
     return help_map[current_os_key()]
@@ -230,13 +230,13 @@ def uv_install_help() -> str:
     help_map = {
         "linux": (
             "Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`, "
-            "poi riapri la shell o ricarica il profilo."
+            "then reopen the shell or reload your profile."
         ),
         "macos": (
-            "macOS: `brew install uv` oppure `curl -LsSf https://astral.sh/uv/install.sh | sh`."
+            "macOS: `brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`."
         ),
         "windows": (
-            "Windows: `winget install astral-sh.uv` oppure `powershell -ExecutionPolicy ByPass -c \"irm https://astral.sh/uv/install.ps1 | iex\"`."
+            "Windows: `winget install astral-sh.uv` or `powershell -ExecutionPolicy ByPass -c \"irm https://astral.sh/uv/install.ps1 | iex\"`."
         ),
     }
     return help_map[current_os_key()]
@@ -245,14 +245,14 @@ def uv_install_help() -> str:
 def node_install_help() -> str:
     help_map = {
         "linux": (
-            "Linux: installa Node.js LTS. Su Debian/Ubuntu puoi usare i pacchetti NodeSource "
-            "oppure il package manager della distro, poi verifica con `node --version` e `npm --version`."
+            "Linux: install Node.js LTS. On Debian/Ubuntu you can use NodeSource packages "
+            "or the distro package manager, then verify with `node --version` and `npm --version`."
         ),
         "macos": (
-            "macOS: `brew install node` oppure installer ufficiale da nodejs.org."
+            "macOS: `brew install node` or the official installer from nodejs.org."
         ),
         "windows": (
-            "Windows: `winget install OpenJS.NodeJS.LTS` oppure installer ufficiale da nodejs.org."
+            "Windows: `winget install OpenJS.NodeJS.LTS` or the official installer from nodejs.org."
         ),
     }
     return help_map[current_os_key()]
@@ -260,26 +260,26 @@ def node_install_help() -> str:
 
 def claude_install_help() -> str:
     return (
-        "Claude Code: richiede Node.js e npm. Dopo Node, installa con "
+        "Claude Code requires Node.js and npm. After Node, install it with "
         "`npm install -g @anthropic-ai/claude-code`. "
-        "Verifica con `claude --version` e poi autentica il tool secondo il tuo setup."
+        "Verify with `claude --version`, then authenticate the tool for your setup."
     )
 
 
 def docker_install_help() -> str:
     help_map = {
         "linux": (
-            "Linux: installa Docker Engine dal repository ufficiale della tua distro. "
-            "Su Ubuntu/Debian conviene seguire la guida Docker ufficiale, poi "
-            "`sudo systemctl enable --now docker` e opzionalmente "
+            "Linux: install Docker Engine from the official repository for your distro. "
+            "On Ubuntu/Debian, the official Docker guide is usually the best path, then run "
+            "`sudo systemctl enable --now docker` and optionally "
             "`sudo usermod -aG docker $USER`."
         ),
         "macos": (
-            "macOS: installa Docker Desktop dal sito Docker oppure con `brew install --cask docker`."
+            "macOS: install Docker Desktop from docker.com or with `brew install --cask docker`."
         ),
         "windows": (
-            "Windows: installa Docker Desktop dal sito Docker o con "
-            "`winget install Docker.DockerDesktop`. WSL2 deve essere attivo."
+            "Windows: install Docker Desktop from docker.com or with "
+            "`winget install Docker.DockerDesktop`. WSL2 must be enabled."
         ),
     }
     return help_map[current_os_key()]
@@ -288,15 +288,15 @@ def docker_install_help() -> str:
 def docker_start_help() -> str:
     help_map = {
         "linux": (
-            "Docker e' installato ma non attivo. Avvio tipico Linux: "
-            "`sudo systemctl start docker` e, se serve all'avvio, "
+            "Docker is installed but not active. Typical Linux startup: "
+            "`sudo systemctl start docker` and, if needed at boot, "
             "`sudo systemctl enable docker`."
         ),
         "macos": (
-            "Docker e' installato ma non attivo. Apri Docker Desktop e attendi che il motore risulti avviato."
+            "Docker is installed but not active. Open Docker Desktop and wait for the engine to start."
         ),
         "windows": (
-            "Docker e' installato ma non attivo. Avvia Docker Desktop e verifica che WSL2/virtualizzazione siano abilitate."
+            "Docker is installed but not active. Start Docker Desktop and verify that WSL2/virtualization is enabled."
         ),
     }
     return help_map[current_os_key()]
@@ -304,18 +304,18 @@ def docker_start_help() -> str:
 
 def venv_help() -> str:
     return (
-        "Virtualenv non attivo. Crea l'ambiente con `uv venv` oppure "
-        "`python -m venv .venv`, poi attivalo con "
-        "`source .venv/bin/activate` su Linux/macOS o "
-        "`.venv\\Scripts\\activate` su Windows."
+        "Virtualenv is not active. Create it with `uv venv` or "
+        "`python -m venv .venv`, then activate it with "
+        "`source .venv/bin/activate` on Linux/macOS or "
+        "`.venv\\Scripts\\activate` on Windows."
     )
 
 
 def build_summary_table(results: list[CheckResult], docker_runtime: tuple[str, str], venv_status: tuple[str, str]) -> Table:
-    table = Table(title="Stato Ambiente", expand=True)
-    table.add_column("Componente", style="cyan", no_wrap=True)
-    table.add_column("Stato", style="bold")
-    table.add_column("Dettagli")
+    table = Table(title="Environment Status", expand=True)
+    table.add_column("Component", style="cyan", no_wrap=True)
+    table.add_column("Status", style="bold")
+    table.add_column("Details")
 
     for result in results:
         table.add_row(result.name, result.status, result.details)
@@ -339,7 +339,7 @@ def main() -> None:
 
     console.print(
         Panel.fit(
-            f"[bold]Sistema rilevato[/bold]\n{os_name} | {os_description}",
+            f"[bold]Detected system[/bold]\n{os_name} | {os_description}",
             title="Environment Check",
             border_style="blue",
         )
@@ -351,14 +351,14 @@ def main() -> None:
             title = f"{result.name}: ok"
             body = result.details
         else:
-            title = f"{result.name}: come installare"
+            title = f"{result.name}: install help"
             body = result.install_help
         console.print(Panel(body, title=title, expand=True))
 
-    if docker_runtime[0] != "Attivo":
-        console.print(Panel(docker_runtime[1], title="Docker: attivazione", expand=True))
+    if docker_runtime[0] != "Active":
+        console.print(Panel(docker_runtime[1], title="Docker: activation", expand=True))
 
-    if venv_status[0] != "Attivo":
+    if venv_status[0] != "Active":
         console.print(Panel(venv_status[1], title="Python virtualenv", expand=True))
 
 

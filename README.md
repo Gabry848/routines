@@ -6,6 +6,11 @@ Run AI agents on a schedule, not by hand.
 
 Routines is a scheduler for Claude Code / Codex agents that lets you define recurring jobs, isolate their runtime, and manage everything through an MCP server. Instead of reopening the same workflow every morning, every week, or after every event, you define it once and let it run.
 
+Default safety posture:
+
+- the MCP and trigger API bind to `127.0.0.1` by default
+- if you intentionally expose the server beyond localhost, set `SCHEDULER_MCP_API_KEY`
+
 ## What You Get
 
 - Scheduled AI work: run agents on cron schedules.
@@ -121,7 +126,13 @@ uv run mcp-server
 This starts the MCP server on:
 
 ```text
-http://0.0.0.0:8080/mcp
+http://127.0.0.1:8080/mcp
+```
+
+To expose it on your network, start it programmatically with an explicit host you chose, for example:
+
+```bash
+uv run python -c "from scheduler.app import run_scheduler_with_mcp; run_scheduler_with_mcp(host='0.0.0.0')"
 ```
 
 If you only want the scheduler without MCP:
@@ -144,13 +155,13 @@ Add this MCP server entry to your client config:
 }
 ```
 
-To require authentication, set:
+If you expose the server beyond localhost, require authentication:
 
 ```bash
 export SCHEDULER_MCP_API_KEY=your-secret-key
 ```
 
-If `SCHEDULER_MCP_API_KEY` is not set, authentication is disabled.
+If `SCHEDULER_MCP_API_KEY` is not set, authentication is disabled. That is acceptable for localhost-only use, but not for a network-exposed deployment.
 
 ## Trigger A Routine Via HTTP API
 
@@ -170,7 +181,7 @@ Request body:
 
 `task_id` is optional. If omitted, all enabled tasks for the routine are triggered, exactly like `run_routine_now`.
 
-Example without auth:
+Example without auth on localhost:
 
 ```bash
 curl -X POST http://localhost:8080/api/routines/my-routine/run \
@@ -190,7 +201,7 @@ curl -X POST http://localhost:8080/api/routines/my-routine/run \
 Authentication follows the same rule as the MCP endpoint:
 
 - if `SCHEDULER_MCP_API_KEY` is set, send it in the `Authorization` header
-- if `SCHEDULER_MCP_API_KEY` is not set, the endpoint is public on the bound interface
+- if `SCHEDULER_MCP_API_KEY` is not set, the endpoint is only safe when the server remains bound to localhost
 
 ## Routine Anatomy
 

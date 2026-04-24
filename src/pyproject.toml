@@ -1,8 +1,9 @@
 [project]
-name = "src"
+name = "routines"
 version = "0.1.0"
-description = "Add your description here"
+description = "Schedule and operate Claude Code / Codex routines through a local MCP server."
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "apscheduler>=3.11.2",

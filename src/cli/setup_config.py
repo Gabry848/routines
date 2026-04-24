@@ -37,7 +37,7 @@ def prompt_yes_no(question: str, default: bool = True) -> bool:
             return True
         if value in {"n", "no"}:
             return False
-        console.print("[red]Risposta non valida.[/red]")
+        console.print("[red]Invalid answer.[/red]")
 
 
 def prompt_text(question: str, default: str = "", secret: bool = False) -> str:
@@ -48,7 +48,7 @@ def prompt_text(question: str, default: str = "", secret: bool = False) -> str:
             return value
         if default:
             return default
-        console.print("[red]Valore obbligatorio.[/red]")
+        console.print("[red]A value is required.[/red]")
 
 
 def prompt_optional_text(question: str, default: str = "", secret: bool = False) -> str:
@@ -59,7 +59,7 @@ def prompt_optional_text(question: str, default: str = "", secret: bool = False)
 
 def prompt_json(question: str, default: dict[str, Any] | None = None) -> dict[str, Any]:
     console.print(question)
-    console.print("Incolla JSON su una riga. Lascia vuoto per usare il default.")
+    console.print("Paste JSON on a single line. Leave empty to use the default.")
     default_text = json.dumps(default, indent=2) if default else ""
     if default_text:
         console.print(Panel(default_text, title="Default", expand=False))
@@ -70,10 +70,10 @@ def prompt_json(question: str, default: dict[str, Any] | None = None) -> dict[st
         try:
             parsed = json.loads(value)
         except json.JSONDecodeError as exc:
-            console.print(f"[red]JSON non valido:[/red] {exc}")
+            console.print(f"[red]Invalid JSON:[/red] {exc}")
             continue
         if not isinstance(parsed, dict):
-            console.print("[red]Serve un oggetto JSON.[/red]")
+            console.print("[red]A JSON object is required.[/red]")
             continue
         return parsed
 
@@ -91,11 +91,11 @@ def build_settings_from_import() -> dict[str, Any]:
     imported = load_json_dict(HOME_CLAUDE_SETTINGS_PATH)
     if not imported:
         console.print(
-            f"[yellow]Nessun file importabile trovato in {HOME_CLAUDE_SETTINGS_PATH}.[/yellow]"
+            f"[yellow]No importable file found at {HOME_CLAUDE_SETTINGS_PATH}.[/yellow]"
         )
         return {}
 
-    console.print(f"Import da [bold]{HOME_CLAUDE_SETTINGS_PATH}[/bold].")
+    console.print(f"Imported from [bold]{HOME_CLAUDE_SETTINGS_PATH}[/bold].")
     return imported
 
 
@@ -136,26 +136,26 @@ def build_settings_manually(existing: dict[str, Any]) -> dict[str, Any]:
 
     settings: dict[str, Any] = {"env": {k: v for k, v in env.items() if v}}
 
-    if prompt_yes_no("Vuoi configurare enabledPlugins?", default=bool(existing.get("enabledPlugins"))):
+    if prompt_yes_no("Configure enabledPlugins?", default=bool(existing.get("enabledPlugins"))):
         settings["enabledPlugins"] = prompt_json(
-            "Inserisci enabledPlugins come oggetto JSON.",
+            "Enter enabledPlugins as a JSON object.",
             default=existing.get("enabledPlugins") if isinstance(existing.get("enabledPlugins"), dict) else {},
         )
 
     if prompt_yes_no(
-        "Vuoi configurare extraKnownMarketplaces?",
+        "Configure extraKnownMarketplaces?",
         default=bool(existing.get("extraKnownMarketplaces")),
     ):
         settings["extraKnownMarketplaces"] = prompt_json(
-            "Inserisci extraKnownMarketplaces come oggetto JSON.",
+            "Enter extraKnownMarketplaces as a JSON object.",
             default=existing.get("extraKnownMarketplaces")
             if isinstance(existing.get("extraKnownMarketplaces"), dict)
             else {},
         )
 
-    if prompt_yes_no("Vuoi salvare mcpServers dentro settings.json?", default=False):
+    if prompt_yes_no("Store mcpServers inside settings.json?", default=False):
         settings["mcpServers"] = prompt_json(
-            "Inserisci mcpServers come oggetto JSON.",
+            "Enter mcpServers as a JSON object.",
             default=existing.get("mcpServers") if isinstance(existing.get("mcpServers"), dict) else {},
         )
 
@@ -164,25 +164,25 @@ def build_settings_manually(existing: dict[str, Any]) -> dict[str, Any]:
 
 def choose_claude_json_source(existing: dict[str, Any]) -> dict[str, Any]:
     console.print("")
-    console.print("[bold]Configurazione MCP / claude.json[/bold]")
+    console.print("[bold]MCP / claude.json Configuration[/bold]")
 
-    if prompt_yes_no("Vuoi copiare ~/.claude.json nel progetto?", default=HOME_CLAUDE_JSON_PATH.exists()):
+    if prompt_yes_no("Copy ~/.claude.json into the project?", default=HOME_CLAUDE_JSON_PATH.exists()):
         imported = load_json_dict(HOME_CLAUDE_JSON_PATH)
         if imported:
-            console.print(f"Copiato contenuto da [bold]{HOME_CLAUDE_JSON_PATH}[/bold].")
+            console.print(f"Copied content from [bold]{HOME_CLAUDE_JSON_PATH}[/bold].")
             return imported
-        console.print(f"[yellow]Nessun file valido in {HOME_CLAUDE_JSON_PATH}.[/yellow]")
+        console.print(f"[yellow]No valid file found at {HOME_CLAUDE_JSON_PATH}.[/yellow]")
 
-    if prompt_yes_no("Vuoi importare mcpServers da .mcp.json del progetto?", default=PROJECT_MCP_JSON_PATH.exists()):
+    if prompt_yes_no("Import mcpServers from the project's .mcp.json?", default=PROJECT_MCP_JSON_PATH.exists()):
         imported = load_json_dict(PROJECT_MCP_JSON_PATH)
         if imported:
-            console.print(f"Importato contenuto da [bold]{PROJECT_MCP_JSON_PATH}[/bold].")
+            console.print(f"Imported content from [bold]{PROJECT_MCP_JSON_PATH}[/bold].")
             return imported
-        console.print(f"[yellow]Nessun file valido in {PROJECT_MCP_JSON_PATH}.[/yellow]")
+        console.print(f"[yellow]No valid file found at {PROJECT_MCP_JSON_PATH}.[/yellow]")
 
-    if prompt_yes_no("Vuoi inserire manualmente il contenuto di claude.json?", default=bool(existing)):
+    if prompt_yes_no("Enter claude.json content manually?", default=bool(existing)):
         return prompt_json(
-            "Inserisci l'intero contenuto di claude.json come oggetto JSON.",
+            "Enter the full claude.json content as a JSON object.",
             default=existing,
         )
 
@@ -193,8 +193,8 @@ def run_setup(show_intro: bool = True) -> None:
     if show_intro:
         console.print(
         Panel(
-            "Questa procedura crea una configurazione locale in `.config/routines`.\n"
-            "Dopo il setup il programma usera' solo questi file e non leggera' `~/.claude*`.",
+            "This flow creates a local configuration in `.config/routines`.\n"
+            "After setup, the program will only use these files and will not read `~/.claude*`.",
             title="Routine Setup",
             expand=False,
         )
@@ -206,7 +206,7 @@ def run_setup(show_intro: bool = True) -> None:
     existing_claude_json = load_local_claude_json()
 
     use_installed = prompt_yes_no(
-        "Vuoi usare come base la configurazione di Claude Code installato?",
+        "Use the installed Claude Code configuration as a base?",
         default=HOME_CLAUDE_SETTINGS_PATH.exists(),
     )
 
@@ -217,9 +217,9 @@ def run_setup(show_intro: bool = True) -> None:
     else:
         settings = build_settings_manually(existing_settings)
 
-    if prompt_yes_no("Vuoi rivedere manualmente il JSON finale di settings.json?", default=False):
+    if prompt_yes_no("Review the final settings.json manually?", default=False):
         settings = prompt_json(
-            "Inserisci l'intero contenuto finale di settings.json come oggetto JSON.",
+            "Enter the full final settings.json content as a JSON object.",
             default=settings,
         )
 
@@ -229,7 +229,7 @@ def run_setup(show_intro: bool = True) -> None:
     save_local_claude_json(claude_json)
 
     console.print("")
-    console.print("[green]Configurazione salvata.[/green]")
+    console.print("[green]Configuration saved.[/green]")
     console.print(f"- settings: {LOCAL_CLAUDE_SETTINGS_PATH}")
     console.print(f"- claude.json: {LOCAL_CLAUDE_JSON_PATH}")
     console.print(f"- root config: {LOCAL_CONFIG_PATH}")
