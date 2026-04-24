@@ -51,3 +51,4 @@ from .tools import (  # noqa: E402, F401
     validation_tools,
     import_export_tools,
 )
+from .resources import routine_resources  # noqa: E402, F401

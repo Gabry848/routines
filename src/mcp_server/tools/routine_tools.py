@@ -25,7 +25,7 @@ def get_routine(ctx: Context, name: str, task_id: str | None = None) -> dict[str
 
 @mcp.tool
 def add_routine(ctx: Context, name: str, config: dict[str, Any], prompt: str) -> dict[str, Any]:
-    """Create a new routine with directory, config.json, prompt file, and env directory."""
+    """Create a new routine with directory, config.json, prompt file, and env directory. Read scheduler://guides/routine-config before building the config payload."""
     result = routine_service.create_routine(name, config, prompt)
     if result is None:
         return {"error": f"routine '{name}' already exists"}

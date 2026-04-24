@@ -9,6 +9,9 @@ from .constants import (
 )
 
 
+HOME_CLAUDE_JSON_PATH = Path.home() / ".claude.json"
+HOME_CLAUDE_SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
+
 DOCKER_SETTINGS_ENV_KEYS = {
     "ANTHROPIC_AUTH_TOKEN",
     "ANTHROPIC_BASE_URL",
@@ -65,12 +68,49 @@ def save_local_claude_json(data: dict[str, Any]) -> None:
         f.write("\n")
 
 
-def build_runtime_settings() -> dict[str, Any]:
-    source_data = load_local_claude_settings()
-    if not source_data:
+def _project_scope_chain(project_root: Path | None) -> list[Path]:
+    if project_root is None:
+        return []
+
+    resolved = project_root.resolve()
+    chain: list[Path] = []
+    current = resolved
+    while True:
+        chain.append(current)
+        if current.parent == current:
+            break
+        current = current.parent
+    chain.reverse()
+    return chain
+
+
+def _extract_project_settings(data: dict[str, Any], project_root: Path | None) -> dict[str, Any]:
+    projects = data.get("projects")
+    if not isinstance(projects, dict):
         return {}
 
+    merged: dict[str, Any] = {}
+    for candidate in _project_scope_chain(project_root):
+        scoped = projects.get(str(candidate))
+        if isinstance(scoped, dict):
+            merged.update(scoped)
+    return merged
+
+
+def _load_home_claude_settings() -> dict[str, Any]:
+    return _load_json_dict(HOME_CLAUDE_SETTINGS_PATH)
+
+
+def _load_home_claude_json() -> dict[str, Any]:
+    return _load_json_dict(HOME_CLAUDE_JSON_PATH)
+
+
+def build_runtime_settings(project_root: Path | None = None) -> dict[str, Any]:
     runtime_settings: dict[str, Any] = {}
+
+    home_settings = _load_home_claude_settings()
+    source_data = dict(home_settings)
+    source_data.update(load_local_claude_settings())
 
     source_env = source_data.get("env", {})
     if isinstance(source_env, dict):
@@ -82,18 +122,33 @@ def build_runtime_settings() -> dict[str, Any]:
         if filtered_env:
             runtime_settings["env"] = filtered_env
 
-    for key in ("enabledPlugins", "extraKnownMarketplaces", "mcpServers"):
+    for key in ("enabledPlugins", "extraKnownMarketplaces", "permissions"):
         value = source_data.get(key)
         if isinstance(value, dict) and value:
             runtime_settings[key] = value
 
+    discovered_mcp = discover_local_mcp_servers(project_root=project_root)
+    if discovered_mcp:
+        runtime_settings["mcpServers"] = discovered_mcp
+
     return runtime_settings
 
 
-def discover_local_mcp_servers() -> dict[str, dict[str, Any]]:
+def discover_local_mcp_servers(project_root: Path | None = None) -> dict[str, dict[str, Any]]:
     servers: dict[str, dict[str, Any]] = {}
 
-    for data in (load_local_claude_json(), load_local_claude_settings()):
+    home_claude_json = _load_home_claude_json()
+    home_claude_settings = _load_home_claude_settings()
+
+    data_sources = (
+        home_claude_settings,
+        _extract_project_settings(home_claude_json, project_root),
+        home_claude_json,
+        load_local_claude_json(),
+        load_local_claude_settings(),
+    )
+
+    for data in data_sources:
         mcp = data.get("mcpServers", {})
         if isinstance(mcp, dict):
             servers.update(mcp)

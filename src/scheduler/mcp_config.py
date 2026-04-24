@@ -3,10 +3,11 @@ from pathlib import Path
 
 from .project_config import discover_local_mcp_servers
 
+
 def discover_mcp_servers(
-    project_root: object | None = None,
+    project_root: Path | None = None,
 ) -> dict[str, dict[str, Any]]:
-    return discover_local_mcp_servers()
+    return discover_local_mcp_servers(project_root=project_root)
 
 
 def resolve_server_names(

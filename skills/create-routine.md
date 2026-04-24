@@ -7,6 +7,8 @@ You are creating a routine for this project.
 
 Follow these instructions exactly. Do not invent fields that are not supported by the codebase.
 
+Before writing `config.json`, read `skills/routine-config-reference.md` and use it as the source of truth for supported fields, defaults, and runtime behavior.
+
 ## Goal
 
 Create a complete routine under `routines/<routine-name>/` that can be discovered and executed by the scheduler in `src/scheduler/`.

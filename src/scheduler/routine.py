@@ -194,13 +194,25 @@ class RoutineConfig:
         # --- Build allowed_tools ---
         base_tools = options_payload.pop("allowed_tools", None) or []
         auto_mcp_tools: list[str] = []
-        for server_name, tool_names in mcp_selected_tools.items():
+        for server_name in resolved_mcp:
             namespace = server_name.replace("-", "_")
-            for tool_name in tool_names:
-                auto_mcp_tools.append(f"mcp__{namespace}__{tool_name}")
+            tool_names = mcp_selected_tools.get(server_name, [])
+            if tool_names:
+                for tool_name in tool_names:
+                    auto_mcp_tools.append(f"mcp__{namespace}__{tool_name}")
+            else:
+                auto_mcp_tools.append(f"mcp__{namespace}__")
 
         all_tools = list(dict.fromkeys(base_tools + auto_mcp_tools))
         options_payload["allowed_tools"] = all_tools or DEFAULT_TOOLS
+        options_payload["permission_mode"] = (
+            options_payload.get("permission_mode") or "bypassPermissions"
+        )
+        extra_args = options_payload.get("extra_args")
+        if not isinstance(extra_args, dict):
+            extra_args = {}
+        extra_args.setdefault("allow-dangerously-skip-permissions", None)
+        options_payload["extra_args"] = extra_args
         if options_payload.get("sandbox") is None:
             options_payload["sandbox"] = True
             
@@ -225,7 +237,8 @@ class RoutineConfig:
             # Genera un settings.json runtime minimale con solo auth/config strettamente
             # necessarie al container, senza ereditare permissions o altri default globali.
             filtered_settings_path = runtime_dir / "docker_settings.json"
-            settings_data = build_runtime_settings()
+            settings_data = build_runtime_settings(project_root=PROJECT_ROOT)
+            self._merge_auto_permissions(settings_data, options_payload["allowed_tools"])
             with filtered_settings_path.open("w", encoding="utf-8") as sf:
                 json.dump(settings_data, sf, indent=2)
 
@@ -254,7 +267,6 @@ exec docker run -i --rm \\
             wrapper_path.chmod(0o755)
             
             options_payload["cli_path"] = str(wrapper_path)
-            options_payload["permission_mode"] = options_payload.get("permission_mode") or "acceptEdits"
 
             add_dirs = options_payload.get("add_dirs") or []
             add_dirs = [str(path) for path in add_dirs]
@@ -270,6 +282,22 @@ exec docker run -i --rm \\
             options_payload["env"] = custom_env
 
         return ClaudeAgentOptions(**options_payload)
+
+    @staticmethod
+    def _merge_auto_permissions(settings_data: dict[str, Any], allowed_tools: list[str]) -> None:
+        permissions = settings_data.get("permissions")
+        if not isinstance(permissions, dict):
+            permissions = {}
+            settings_data["permissions"] = permissions
+
+        for tool_name in allowed_tools:
+            if not isinstance(tool_name, str) or not tool_name:
+                continue
+            current = permissions.get(tool_name)
+            if isinstance(current, dict):
+                current.setdefault("mode", "auto")
+                continue
+            permissions[tool_name] = {"mode": "auto"}
 
 
 class Routine:
