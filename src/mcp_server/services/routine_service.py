@@ -143,6 +143,14 @@ def update_routine_config(name: str, updates: dict[str, Any], base_path: Path = 
     return config
 
 
+def replace_routine_config(name: str, config: dict[str, Any], base_path: Path = ROUTINES_PATH) -> dict[str, Any] | None:
+    current = _load_config(name, base_path)
+    if current is None:
+        return None
+    _save_config(name, config, base_path)
+    return config
+
+
 def delete_routine(name: str, mode: str = "disable", base_path: Path = ROUTINES_PATH) -> bool:
     routine_dir = _routine_dir(name, base_path)
     if not routine_dir.exists():

@@ -53,6 +53,21 @@ def update_task(name: str, task_id: str, updates: dict[str, Any], base_path: Pat
     return None
 
 
+def replace_task(name: str, task_id: str, new_task: dict[str, Any], base_path: Path | None = None) -> dict[str, Any] | None:
+    result = _get_tasks(name, base_path=base_path)
+    if result is None:
+        return None
+    tasks, config = result
+
+    for i, task in enumerate(tasks):
+        if isinstance(task, dict) and task.get("task_id") == task_id:
+            tasks[i] = new_task
+            config["scheduler"]["tasks"] = tasks
+            (_save_config(name, config, base_path=base_path) if base_path else _save_config(name, config))
+            return new_task
+    return None
+
+
 def delete_task(name: str, task_id: str, base_path: Path | None = None) -> bool:
     result = _get_tasks(name, base_path=base_path)
     if result is None:

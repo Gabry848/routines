@@ -4,7 +4,7 @@ from typing import Any
 
 from fastmcp import Context
 
-from ..services import routine_service
+from ..services import routine_service, validation_service
 from ..server import mcp
 
 
@@ -26,7 +26,16 @@ def get_routine(ctx: Context, name: str, task_id: str | None = None) -> dict[str
 @mcp.tool
 def add_routine(ctx: Context, name: str, config: dict[str, Any], prompt: str) -> dict[str, Any]:
     """Create a new routine with directory, config.json, prompt file, and env directory. Read scheduler://guides/routine-config before building the config payload."""
-    result = routine_service.create_routine(name, config, prompt)
+    normalized_config = validation_service.normalize_config(config, routine_name=name)
+    validation = validation_service.validate_config(normalized_config)
+    if not validation.valid:
+        return {
+            "error": "invalid routine config",
+            "validation_errors": validation.errors,
+            "normalized_config": normalized_config,
+        }
+
+    result = routine_service.create_routine(name, normalized_config, prompt)
     if result is None:
         return {"error": f"routine '{name}' already exists"}
     return result.model_dump()
@@ -35,7 +44,24 @@ def add_routine(ctx: Context, name: str, config: dict[str, Any], prompt: str) ->
 @mcp.tool
 def update_routine_config(ctx: Context, name: str, updates: dict[str, Any]) -> dict[str, Any]:
     """Safely modify routine config fields. Accepts partial updates deep-merged into existing config."""
-    result = routine_service.update_routine_config(name, updates)
+    current = routine_service.get_routine(name)
+    if current is None:
+        return {"error": f"routine '{name}' not found"}
+
+    normalized_config = validation_service.normalize_config_update(
+        current.config,
+        updates,
+        routine_name=name,
+    )
+    validation = validation_service.validate_config(normalized_config)
+    if not validation.valid:
+        return {
+            "error": "invalid routine config update",
+            "validation_errors": validation.errors,
+            "normalized_config": normalized_config,
+        }
+
+    result = routine_service.replace_routine_config(name, normalized_config)
     if result is None:
         return {"error": f"routine '{name}' not found"}
     return result

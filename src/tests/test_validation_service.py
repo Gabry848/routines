@@ -67,6 +67,60 @@ class TestConfigValidation:
         assert result.valid is False
         assert any("model" in e for e in result.errors)
 
+    def test_empty_tasks_is_invalid(self):
+        config = {
+            "scheduler": {
+                "enabled": True,
+                "timezone": "UTC",
+                "tasks": [],
+            },
+        }
+        result = validation_service.validate_config(config)
+        assert result.valid is False
+        assert any("at least one task" in e for e in result.errors)
+
+
+class TestNormalizeConfig:
+    def test_normalize_adds_defaults_and_filters_unknown_fields(self):
+        config = {
+            "scheduler": {
+                "tasks": [
+                    {
+                        "schedule": {"expression": "0 9 * * *"},
+                        "unknown": "ignored",
+                    }
+                ],
+                "unknown_scheduler_field": True,
+            },
+            "model_config": {
+                "env": {"FOO": "bar"},
+                "bad": "ignored",
+            },
+            "docker": {
+                "enabled": True,
+                "image": "node:20",
+                "bad": "ignored",
+            },
+            "bad_top_level": True,
+        }
+
+        normalized = validation_service.normalize_config(config, routine_name="daily-review")
+
+        assert normalized["scheduler"]["enabled"] is True
+        assert normalized["scheduler"]["timezone"] == "Europe/Rome"
+        assert normalized["scheduler"]["tasks"][0]["task_id"] == "task-0"
+        assert normalized["scheduler"]["tasks"][0]["job_name"] == "daily-review"
+        assert normalized["scheduler"]["tasks"][0]["enabled"] is True
+        assert normalized["scheduler"]["tasks"][0]["schedule"]["type"] == "cron"
+        assert "unknown" not in normalized["scheduler"]["tasks"][0]
+        assert "unknown_scheduler_field" not in normalized["scheduler"]
+        assert normalized["model_config"]["model"] == "sonnet"
+        assert normalized["model_config"]["allowed_tools"] == ["Bash", "Read", "Edit"]
+        assert normalized["model_config"]["load_timeout_ms"] == 60000
+        assert "bad" not in normalized["model_config"]
+        assert normalized["docker"] == {"enabled": True, "image": "node:20"}
+        assert "bad_top_level" not in normalized
+
 
 class TestSchedulePreview:
     def test_preview_default(self):
