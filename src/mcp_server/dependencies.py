@@ -9,4 +9,4 @@ if TYPE_CHECKING:
 
 
 def get_scheduler(ctx: Context) -> RoutineScheduler:
-    return ctx.request_context.lifespan_state["scheduler"]
+    return ctx.lifespan_context["scheduler"]

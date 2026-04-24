@@ -218,6 +218,7 @@ def main() -> None:
 
     console.print("")
     console.print("[green]Onboarding complete.[/green]")
+    console.print("Check that you are in the `src` folder (which is the root of the project) before running the next command.") 
     console.print("Recommended next step: `uv run -m cli.create_routine` to generate your first routines.")
 
 

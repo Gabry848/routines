@@ -485,8 +485,10 @@ class CreateRoutineApp(App):
             pane = TabPane(server_name, ta, id=f"tab-{server_name}")
             panes.append(pane)
 
-        tc = TabbedContent(*panes, id="mcp-tools-tabs")
+        tc = TabbedContent(id="mcp-tools-tabs")
         container.mount(tc)
+        for pane in panes:
+            tc.add_pane(pane)
 
     def _collect_step_5(self) -> bool:
         servers = self._data.get("mcp_servers", [])
