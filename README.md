@@ -2,7 +2,7 @@
 
 ![Routines](./resources/copertina.png)
 
-<video src="resources/demo.mp4" controls="controls" muted="muted" width="100%"></video>
+![demo](resources/demo.gif)
 
 Run AI agents on a schedule, not by hand.
 
