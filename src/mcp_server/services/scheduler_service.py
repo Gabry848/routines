@@ -15,6 +15,33 @@ if TYPE_CHECKING:
     from scheduler.engine import RoutineScheduler
 
 
+def trigger_routine_now(
+    scheduler: RoutineScheduler,
+    name: str,
+    task_id: str | None = None,
+) -> list[str] | None:
+    jobs = load_jobs(scheduler._base_path)
+    matching = [
+        j for j in jobs
+        if j.routine_dir_name == name and (task_id is None or j.task_id == task_id)
+    ]
+    if not matching:
+        return None
+
+    queued_job_ids: list[str] = []
+    for job in matching:
+        manual_job_id = (
+            f"manual-{job.scheduler_job_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+        )
+        scheduler._scheduler.add_job(
+            scheduler._run_tracked_job,
+            args=[job],
+            id=manual_job_id,
+        )
+        queued_job_ids.append(manual_job_id)
+    return queued_job_ids
+
+
 def get_status(scheduler: RoutineScheduler) -> SchedulerStatus:
     all_routines = [
         d.name for d in discover_routines(scheduler._base_path)
@@ -47,20 +74,10 @@ def reload_routines(scheduler: RoutineScheduler) -> tuple[int, int, int]:
 
 
 def run_routine_now(scheduler: RoutineScheduler, name: str, task_id: str | None = None) -> str | None:
-    jobs = load_jobs(scheduler._base_path)
-    matching = [
-        j for j in jobs
-        if j.routine_dir_name == name and (task_id is None or j.task_id == task_id)
-    ]
-    if not matching:
+    queued_job_ids = trigger_routine_now(scheduler, name, task_id=task_id)
+    if queued_job_ids is None:
         return None
-    for job in matching:
-        scheduler._scheduler.add_job(
-            scheduler._run_tracked_job,
-            args=[job],
-            id=f"manual-{job.scheduler_job_id}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}",
-        )
-    return f"triggered {len(matching)} task(s)"
+    return f"triggered {len(queued_job_ids)} task(s)"
 
 
 def list_running_executions(scheduler: RoutineScheduler) -> list[ExecutionInfo]:

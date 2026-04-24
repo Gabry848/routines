@@ -12,6 +12,7 @@ Routines is a scheduler for Claude Code / Codex agents that lets you define recu
 - Repeatable execution: each routine has a prompt, config, optional setup script, and working directory.
 - Safer runtime boundaries: keep agent work inside a local env and optionally run inside Docker.
 - Remote control via MCP: create, update, validate, run, and inspect routines directly from Claude Code / Codex.
+- Optional HTTP trigger API: start a routine from an external system without bypassing the scheduler runtime.
 - Faster onboarding: interactive setup bootstraps local config in `.config/routines`.
 - Easier authoring: a Textual TUI wizard helps create routines without editing JSON manually.
 
@@ -150,6 +151,46 @@ export SCHEDULER_MCP_API_KEY=your-secret-key
 ```
 
 If `SCHEDULER_MCP_API_KEY` is not set, authentication is disabled.
+
+## Trigger A Routine Via HTTP API
+
+The server also exposes a direct HTTP endpoint for external triggers:
+
+```text
+POST /api/routines/{name}/run
+```
+
+Request body:
+
+```json
+{
+  "task_id": "my-task"
+}
+```
+
+`task_id` is optional. If omitted, all enabled tasks for the routine are triggered, exactly like `run_routine_now`.
+
+Example without auth:
+
+```bash
+curl -X POST http://localhost:8080/api/routines/my-routine/run \
+  -H "Content-Type: application/json" \
+  -d '{"task_id":"my-task"}'
+```
+
+Example with auth enabled:
+
+```bash
+curl -X POST http://localhost:8080/api/routines/my-routine/run \
+  -H "Authorization: Bearer $SCHEDULER_MCP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"task_id":"my-task"}'
+```
+
+Authentication follows the same rule as the MCP endpoint:
+
+- if `SCHEDULER_MCP_API_KEY` is set, send it in the `Authorization` header
+- if `SCHEDULER_MCP_API_KEY` is not set, the endpoint is public on the bound interface
 
 ## Routine Anatomy
 
