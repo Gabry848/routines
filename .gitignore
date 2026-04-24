@@ -3,7 +3,10 @@ src/.venv/
 .runtime/
 
 .config/
-src/src.egg-info/
+*.egg-info/
+
+.codex/
+.pytest_cache/
 
 # ignora tute le pycache
 __pycache__/
