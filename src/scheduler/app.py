@@ -14,7 +14,6 @@ def run_scheduler(base_path: Path = ROUTINES_PATH) -> None:
 
 
 def run_scheduler_with_mcp(
-    base_path: Path = ROUTINES_PATH,
     host: str = "127.0.0.1",
     port: int = 8080,
 ) -> None:
