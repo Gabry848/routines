@@ -1,6 +1,5 @@
 """Tests for validation service: config validation, cron preview, task ID suggestion."""
 
-import pytest
 
 from mcp_server.services import validation_service
 

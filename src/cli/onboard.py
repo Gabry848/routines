@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import platform
-import shlex
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -137,7 +136,7 @@ def handle_missing_component(result: env_check.CheckResult) -> None:
     plan = choose_install_plan(result.name)
 
     if plan is None:
-        console.print(f"   Installazione automatica non disponibile.")
+        console.print("   Installazione automatica non disponibile.")
         console.print(f"   Suggerimento: {result.install_help}")
         return
 
@@ -152,7 +151,7 @@ def handle_missing_component(result: env_check.CheckResult) -> None:
     if ok:
         console.print(f"   [green]{result.name} installato o comando completato.[/green]")
     else:
-        console.print(f"   [red]Installazione non riuscita.[/red]")
+        console.print("   [red]Installazione non riuscita.[/red]")
         console.print(f"   Suggerimento: {result.install_help}")
 
 

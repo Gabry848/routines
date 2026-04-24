@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import subprocess
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from croniter import croniter
 from zoneinfo import ZoneInfo, available_timezones
 
-from scheduler.constants import ROUTINES_PATH, PROMT_FILENAME_CANDIDATES, DEFAULT_TOOLS
-from scheduler.loader import discover_routines
+from scheduler.constants import ROUTINES_PATH, PROMT_FILENAME_CANDIDATES
 
 from ..models import ValidationResult, ScriptTestResult, PromptTestResult
 

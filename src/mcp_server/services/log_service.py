@@ -66,7 +66,7 @@ def get_log_by_execution_id(
     for log_path in sorted(logs_dir.glob("*.log"), reverse=True):
         name = log_path.name
         if (year in name and month in name and day in name
-                and hour in name and minute in name):
+                and hour in name and minute in name and second in name):
             content = log_path.read_text(encoding="utf-8", errors="replace")
             return {
                 "filename": name,

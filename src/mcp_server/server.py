@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 from contextlib import asynccontextmanager
 
 from fastmcp import FastMCP
@@ -10,7 +9,6 @@ from scheduler.constants import ROUTINES_PATH
 from scheduler.engine import RoutineScheduler
 from scheduler.loader import load_jobs
 
-from .auth import get_expected_api_key, validate_api_key
 
 
 @asynccontextmanager

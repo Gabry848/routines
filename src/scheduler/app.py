@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from .constants import ROUTINES_PATH

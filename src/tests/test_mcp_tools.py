@@ -2,10 +2,8 @@
 
 import json
 import pytest
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 
-from mcp_server.services import routine_service, task_service, validation_service
+from mcp_server.services import routine_service, task_service
 
 
 @pytest.fixture

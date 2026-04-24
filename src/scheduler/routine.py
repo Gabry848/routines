@@ -9,7 +9,14 @@ from typing import Any
 from claude_agent_sdk import ClaudeAgentOptions
 
 from .agent import ClaudeAgent
-from .constants import *
+from .constants import (
+    DEFAULT_MODEL,
+    DEFAULT_TOOLS,
+    LOCAL_CLAUDE_JSON_PATH,
+    PROJECT_ROOT,
+    PROMT_FILENAME_CANDIDATES,
+    ROUTINES_PATH,
+)
 from .mcp_config import resolve_server_names
 from .project_config import build_runtime_settings, ensure_local_config_dirs
 

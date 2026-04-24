@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from scheduler.loader import load_jobs, discover_routines
-from scheduler.constants import ROUTINES_PATH
 
 from ..models import (
     SchedulerStatus,

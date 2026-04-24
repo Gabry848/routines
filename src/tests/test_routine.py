@@ -45,7 +45,7 @@ async def run_routine(routine_dir_name: str) -> None:
     if docker_config.get("enabled"):
         print(f"    docker: ENABLED (image: {docker_config.get('image', 'node:20')}, network: {docker_config.get('network', 'bridge')})")
     else:
-        print(f"    docker: DISABLED")
+        print("    docker: DISABLED")
         
     env_config = config.config_data.get("environment", {})
     print(f"    isolated: {env_config.get('isolated_runs', False)}")

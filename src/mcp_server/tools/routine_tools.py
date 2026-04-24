@@ -4,7 +4,6 @@ from typing import Any
 
 from fastmcp import Context
 
-from ..dependencies import get_scheduler
 from ..services import routine_service
 from ..server import mcp
 
