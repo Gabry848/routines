@@ -27,7 +27,7 @@ class RoutineConfig:
         "add_dirs": [],
         "env": {},
         "skills": None,
-        "sandbox": None,
+        # "sandbox": None,
         "plugins": [],
         "thinking": None,
         "effort": None,
@@ -98,6 +98,9 @@ class RoutineConfig:
 
             if key in {"max_turns", "max_budget_usd", "skills", "sandbox", "session_store", "tools", "thinking", "effort"}:
                 sanitized[key] = value
+
+        # Abilito sempre la SanBox per sicurezza in modo tale che claude nn possa uscire dalla sua cartella
+        sanitized["sandbox"] = True
 
         return sanitized
 
