@@ -15,11 +15,12 @@
 
 <img src="./resources/copertina.png" alt="Routines Banner" width="700" />
 
-<img src="./resources/demo.gif" alt="Routines Demo" width="700" />
 
 </div>
 
 ---
+
+Run **Claude Code** agents on a schedule. Define recurring tasks with a prompt, a cron expression, and the tools the agent needs — Routines handles the rest. Manage everything from [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [Codex](https://github.com/openai/codex) through a built-in **MCP server** with 30 tools. Inspired by [Anthropic's built-in routines](https://docs.anthropic.com/en/docs/claude-code/routines), but open source, self-hosted, and fully customizable.
 
 ## 🧠 Why Routines?
 
