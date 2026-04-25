@@ -4,10 +4,12 @@
     "timezone": "Europe/Rome",
     "tasks": [
       {
-        "job_name": "example-cron-job",
+        "task_id": "health-check",
+        "job_name": "System Health Check",
+        "enabled": true,
         "schedule": {
           "type": "cron",
-          "expression": "30 9 * * *"
+          "expression": "*/30 * * * *"
         },
         "startup_script": "setup.sh"
       }
@@ -15,15 +17,13 @@
   },
   "model_config": {
     "model": "haiku",
-    "allowed_tools": ["Bash", "GlobMatch", "GrepSearch", "LS", "View", "FileRead", "FileWriView", "FileRead", "FileWritete"]
+    "allowed_tools": ["Bash", "Read", "Write", "GlobMatch", "GrepSearch"]
   },
   "docker": {
-    "enabled": true,
-    "image": "node:20",
-    "network": "bridge"
+    "enabled": false
   },
   "environment": {
-    "isolated_runs": true,
-    "keep_executions": true
+    "isolated_runs": false,
+    "keep_executions": false
   }
 }
