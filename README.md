@@ -30,8 +30,6 @@ Define your agent tasks once — give them a prompt, a schedule, and the tools t
 
 Whether you're triaging issues daily, generating reports weekly, or running recurring maintenance across projects, Routines gives you a single place where scheduling, agent runtime, execution monitoring, and remote control all work together — locally, securely, through MCP.
 
-Built by Gabriele, a 16-year-old developer from Italy. Read the story →
-
 ## ✨ Features
 
 | Category | Features |
