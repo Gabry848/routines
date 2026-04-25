@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="./resources/logo.png" alt="Routines Banner" width="200" />
+
 # Routines
 
 **Open source alternative to Claude Routines**
@@ -12,8 +14,6 @@
 </p>
 
 [Features](#-features) · [Installation](#-quick-start) · [Screenshots](#-screenshots--demo) · [MCP](#-mcp-tools-30) · [License](#-license)
-
-<img src="./resources/copertina.png" alt="Routines Banner" width="700" />
 
 
 </div>
