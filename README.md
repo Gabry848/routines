@@ -43,7 +43,7 @@ Whether you're triaging issues daily, generating reports weekly, or running recu
 | 🛠️ Tooling | Interactive TUI wizard for authoring · Config validation · Schedule preview · Prompt testing |
 | 📦 Portability | Import/export routines · Bootstrapped local config · No reliance on `~/.claude*` |
 
-## 📸 Screenshots & Demo
+## 📸 Video of setup
 
 <div align="center">
   <img src="./resources/demo.gif" alt="Routines in action" width="700" />
