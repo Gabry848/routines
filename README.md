@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/Tools-30-9cf" alt="30 MCP Tools" />
 </p>
 
-[Website](#) · [Features](#-features) · [Screenshots](#-screenshots--demo) · [MCP](#-mcp-tools-30) · [Contributing](#) · [License](#-license)
+[Features](#-features) · [Installation](#-quick-start) · [Screenshots](#-screenshots--demo) · [MCP](#-mcp-tools-30) · [License](#-license)
 
 <img src="./resources/copertina.png" alt="Routines Banner" width="700" />
 
@@ -51,7 +51,7 @@ Whether you're triaging issues daily, generating reports weekly, or running recu
 
 ## 🚀 Quick Start
 
-### 1. Bootstrap
+### 1. Clone & install dependencies
 
 ```bash
 git clone https://github.com/gabry848/routines.git
@@ -59,7 +59,19 @@ cd routines
 ./bootstrap.sh
 ```
 
-Installs `uv`, syncs dependencies, and launches interactive onboarding.
+If `uv` is not installed yet:
+
+```bash
+./bootstrap.sh --install-uv
+```
+
+To skip the interactive onboarding and run it later:
+
+```bash
+./bootstrap.sh --no-onboard
+# then when ready:
+cd src && uv run onboard
+```
 
 ### 2. Create your first routine
 
@@ -81,7 +93,14 @@ Binds to `http://127.0.0.1:8080/mcp`.
 
 ### 4. Connect Claude Code / Codex
 
-Add to your client config:
+Using the CLI (recommended):
+
+```bash
+claude mcp add scheduler --transport http http://localhost:8080/mcp
+
+```
+
+Or manually add to your client config:
 
 ```json
 {
