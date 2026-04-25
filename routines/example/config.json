@@ -15,8 +15,7 @@
   },
   "model_config": {
     "model": "haiku",
-    "allowed_tools": ["Bash", "GlobMatch", "GrepSearch", "LS", "View", "FileRead", "FileWriView", "FileRead", "FileWritete"],
-    "sandbox": true
+    "allowed_tools": ["Bash", "GlobMatch", "GrepSearch", "LS", "View", "FileRead", "FileWriView", "FileRead", "FileWritete"]
   },
   "docker": {
     "enabled": true,
@@ -24,8 +23,6 @@
     "network": "bridge"
   },
   "environment": {
-    "clone_repo": "https://github.com/elder-plinius/CL4R1T4S",
-    "clone_branch": "main",
     "isolated_runs": true,
     "keep_executions": true
   }

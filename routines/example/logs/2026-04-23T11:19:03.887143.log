@@ -1,3 +1,0 @@
-Ti rispondo subito! Prima vedo dove mi trovo e la struttura delle cartelle.
-[tool: Bash] {'command': 'pwd', 'description': 'Mostra la directory corrente'}
-[tool: Bash] {'command': 'ls -la', 'description': 'Lista i file e cartelle presenti'}
